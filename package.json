@@ -1,0 +1,23 @@
+{
+  "name": "twitterimagedownloader",
+  "version": "2.0.0",
+  "description": "Chrome Extension for download image in twitter",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HassakuTb/TwitterImageDownloader2.git"
+  },
+  "author": "hassakueng.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/HassakuTb/TwitterImageDownloader2/issues"
+  },
+  "homepage": "https://github.com/HassakuTb/TwitterImageDownloader2#readme",
+  "devDependencies": {
+    "typescript": "^3.5.3",
+    "@types/chrome": "0.0.86"
+  }
+}
