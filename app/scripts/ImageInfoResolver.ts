@@ -53,7 +53,7 @@ class Resolver_TwitterOld implements ImageInfoResolver{
 
     //  download from single gallery
     //  param image : jquery object <img>
-    //  returns {username, tweetId, imageIndex}
+    //  param srcUrl : twimg url
     private getInfoFromGallery(image : JQuery, srcUrl : string) : ImageInfo{
         console.log("download from gallery")
     
@@ -74,7 +74,6 @@ class Resolver_TwitterOld implements ImageInfoResolver{
     //  download from timeline of tweet detail
     //  param image : jquery object <img>
     //  param srcUrl : twimg url
-    //  returns {username, tweetId, imageIndex}
     private getInfoFromTimeline(image : JQuery, srcUrl : string) : ImageInfo{
         console.log("download from timeline")
     
@@ -102,7 +101,7 @@ class Resolver_TwitterOld implements ImageInfoResolver{
     
     //  download from notification and quote
     //  param image : jquery object <img>
-    //  returns {username, tweetId, imageIndex}
+    //  param srcUrl : twimg url
     private getinfoFromNotification(image : JQuery, srcUrl : string) : ImageInfo{
         console.log("download from quote")
     
@@ -124,7 +123,6 @@ class Resolver_TwitterOld implements ImageInfoResolver{
     //  moment contents is not image
     //  param image : jquery object <img>
     //  param srcUrl : twimg url
-    //  returns {username, tweetId, imageIndex}
     private getInfoFromMoment(image : JQuery, srcUrl : string) : ImageInfo{
         console.log("download from moment cover")
     
