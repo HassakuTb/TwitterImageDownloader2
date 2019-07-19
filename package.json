@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/HassakuTb/TwitterImageDownloader2#readme",
   "devDependencies": {
-    "typescript": "^3.5.3",
-    "@types/chrome": "0.0.86"
+    "@types/chrome": "0.0.86",
+    "@types/jquery": "^3.3.30",
+    "typescript": "^3.5.3"
   }
 }

@@ -11,7 +11,9 @@
     },
     "background" : {
       "scripts" : [
-
+        "scripts/background.ts",
+        "scripts/ImageInfo.ts",
+        "scripts/Setting.ts"
       ],
       "persistent" : false
     },
