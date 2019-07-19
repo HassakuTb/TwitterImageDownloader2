@@ -20,11 +20,10 @@
     "content_scripts":[
        {
             "matches" : [
-                "*://twitter.com/*",
-                "*://tweetdeck.twitter.com/*"
+                "*://twitter.com/*"
             ],
             "js":[
-
+                "scripts/ImageInfoResolver_Twitter.ts"
             ]
         }
     ],
