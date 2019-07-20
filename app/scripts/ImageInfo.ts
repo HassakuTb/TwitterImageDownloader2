@@ -38,6 +38,9 @@ class TwimgUrl{
         });
 
         this.path = this.baseUrl.slice(twimgBase.length);
+        if(this.path.indexOf('.') > -1){
+            this.path = this.path.split('.')[0];
+        }
     }
 
     private initializeForOldUrl(srcUrl : string) : void{
@@ -87,7 +90,12 @@ export class ImageInfoImpl implements ImageInfo {
         console.log("downloadUrl : " + this.downloadUrl);
 
         //  construction filename
-        this.filename = `${this.username}-${this.tweetId}-${this.imageIndex}.${this.twimgUrl.extension}`;
+        if(this.imageIndex === null){
+            this.filename = `${this.username}-${this.tweetId}.${this.twimgUrl.extension}`;
+        }
+        else{
+            this.filename = `${this.username}-${this.tweetId}-${this.imageIndex}.${this.twimgUrl.extension}`;
+        }
         console.log("filename : " + this.filename);
     }
 }
