@@ -1,3 +1,5 @@
+const twimgBase : string = 'https://pbs.twimg.com/media/';
+
 export interface ImageInfo{
     readonly downloadUrl : string;
     readonly filename : string;
@@ -19,38 +21,69 @@ export class ImageInfoImpl implements ImageInfo {
         this.imageIndex = imageIndex;
 
         //  parse query parameter (twimg.com)
-        this.baseUrl =srcUrl.split("?")[0];
-        const queryParams : string = srcUrl.split("?")[1];
-        var queryParamsKVS : {[param : string] : string} = {};
-        for(const q in queryParams.split("&")){
-            const kvs : string[] = q.split("=");
-            queryParamsKVS[kvs[0]] = kvs[1];
-        }
+        console.log(srcUrl);
 
-        //  select extension
-        if("format" in queryParamsKVS){
-            if(queryParamsKVS["format"] === "jpg" || queryParamsKVS["format"] === "jpeg"){
-                this.extension = 'jpg';
+        let queryParamsKVS : {[param : string] : string} = {};
+
+        //  new twimg url
+        if(srcUrl.indexOf("?") > -1){
+            this.baseUrl =srcUrl.split("?")[0];
+            const queryParams : string = srcUrl.split("?")[1];
+            for(const q in queryParams.split("&")){
+                const kvs : string[] = q.split("=");
+                queryParamsKVS[kvs[0]] = kvs[1];
+            }
+    
+            //  select extension
+            if("format" in queryParamsKVS){
+                if(queryParamsKVS["format"] === "jpg" || queryParamsKVS["format"] === "jpeg"){
+                    this.extension = 'jpg';
+                }
+                else{
+                    this.extension = 'png';
+                }
             }
             else{
                 this.extension = 'png';
             }
         }
+        //  old twimg url
         else{
-            this.extension = 'png';
-        }
+            const suffix = srcUrl.slice(twimgBase.length);
+            const split : string[] = srcUrl.split('.');
+            let extension : string = split[split.length - 1].toLowerCase();
+            const extensionSplit : string[] = extension.split(':');
+            if(extensionSplit.length >= 2){
+                extension = extensionSplit[0];
+            }
+            this.baseUrl = twimgBase + suffix.split(".")[0];
 
+            if(extension === "jpg" || extension === "jpeg"){
+                this.extension = 'jpg';
+            }
+            else{
+                this.extension = 'png';
+            }
+            queryParamsKVS["format"] = this.extension;
+        }
+    
         //  construction download src url
         queryParamsKVS["name"] = "orig";
         let url : string = this.baseUrl;
         url += "?";
+        let i: number = 0;
+        const keyCount = Object.keys(queryParamsKVS).length;
         for(const key in queryParamsKVS){
             url += `${key}=${queryParamsKVS[key]}`
+            if(i < keyCount - 1) url +='&';
+            i ++;
         }
         this.downloadUrl = url;
+        console.log("downloadUrl : " + this.downloadUrl);
 
         //  construction filename
         this.filename = `${this.username}-${this.tweetId}-${this.imageIndex}.${this.extension}`;
+        console.log("filename : " + this.filename);
     }
 }
 
@@ -94,9 +127,9 @@ export class ImageInfoUnresolve implements ImageInfo{
         }
         this.downloadUrl = url;
 
-        const prefix : string = baseUrl.slice('https://pbs.twimg.com/media/'.length);
+        const suffix : string = baseUrl.slice(twimgBase.length);
 
         //  construction filename
-        this.filename = `TID-unknown-${prefix}.${this.extension}`;
+        this.filename = `TID-unknown-${suffix}.${this.extension}`;
     }
 }

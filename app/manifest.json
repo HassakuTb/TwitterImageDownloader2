@@ -11,25 +11,24 @@
     },
     "background" : {
       "scripts" : [
-        "scripts/background.ts",
-        "scripts/ImageInfo.ts",
-        "scripts/Setting.ts"
+        "dist/background.bundle.js"
       ],
       "persistent" : false
     },
     "content_scripts":[
-       {
-            "matches" : [
-                "*://twitter.com/*"
-            ],
-            "js":[
-                "scripts/ImageInfoResolver_Twitter.ts"
-            ]
-        }
+      {
+        "matches" : [
+          "*://twitter.com/*"
+        ],
+        "js":[
+          "dist/content.bundle.js",
+          "scripts/JQuery-3.4.1.min.js"
+        ]
+      }
     ],
     "options_ui" : {
-        "page" : "pages/options/options.html",
-        "chrome_style" : true
+      "page" : "pages/options/options.html",
+      "chrome_style" : true
     },
     "permissions" : [
       "tabs",

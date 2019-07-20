@@ -4,6 +4,7 @@
   "description": "Chrome Extension for download image in twitter",
   "main": "index.js",
   "scripts": {
+    "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,6 +20,10 @@
   "devDependencies": {
     "@types/chrome": "0.0.86",
     "@types/jquery": "^3.3.30",
-    "typescript": "^3.5.3"
-  }
+    "ts-loader": "^6.0.4",
+    "typescript": "^3.5.3",
+    "webpack": "^4.36.1",
+    "webpack-cli": "^3.3.6"
+  },
+  "private": true
 }
