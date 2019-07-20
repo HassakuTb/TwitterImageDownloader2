@@ -26,8 +26,7 @@ chrome.runtime.onInstalled.addListener(() => {
             'image'
         ],
         documentUrlPatterns: [
-            'https://twitter.com/*',
-            'https://tweetdeck.twitter.com/*'
+            'https://twitter.com/*'
         ],
         targetUrlPatterns: [
             'https://pbs.twimg.com/media/*'

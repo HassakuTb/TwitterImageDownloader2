@@ -76,11 +76,16 @@ class Resolever_TwitterNew implements ImageInfoResolver{
         if(link === undefined) return new ImageInfoUnresolve(srcUrl);
 
         const linkSplit : string[] = link.split('/');
-        const username : string = linkSplit[1];
-        const tweetId : string = linkSplit[3];
-        const imageIndex : number = parseInt(linkSplit[5], 10) - 1;
+        if(linkSplit.length === 6 && linkSplit[4] === 'photo'){
+            const username : string = linkSplit[1];
+            const tweetId : string = linkSplit[3];
+            const imageIndex : number = parseInt(linkSplit[5], 10) - 1;
 
-        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl);
+            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl);
+        }
+        else{
+            return new ImageInfoUnresolve(srcUrl);
+        }
     }
 }
 

@@ -1,7 +1,6 @@
-## Unreleased
+## 2.0.0
 ### Added
 「新しいTwitter」に対応
-TweetDeckに対応(画像を拡大表示中のみ)
 
 ### Changed
 内部実装を大幅に変更  
