@@ -19,7 +19,11 @@ class ResolverSelector{
         const targets : JQuery = $(`img[src*="${srcUrl}"]`);
 
         if(pageUrl.lastIndexOf("https://twitter.com", 0) === 0){
-            if(targets.closest('article').length > 0){
+            if(ResolverSelector.isPhotoUrl(pageUrl)){
+                console.log("TIL use resolver for new twitter image preview");
+                return new Resolever_TwitterNewPreview(pageUrl);
+            }
+            else if(targets.closest('article').length > 0){
                 console.log("TIL use resolver for new twitter");
                 return new Resolever_TwitterNew(targets);
             }
@@ -36,6 +40,13 @@ class ResolverSelector{
             console.log("TIL use resolver for unknown");
             return new Resolver_Unknown();
         }
+    }
+
+    public static isPhotoUrl(url : string) : boolean{
+        const path : string = url.slice("https://twitter.com".length);
+
+        const linkSplit : string[] = path.split('/');
+        return linkSplit.length === 6 && linkSplit[4] === 'photo';
     }
 }
 
@@ -76,6 +87,34 @@ class Resolever_TwitterNew implements ImageInfoResolver{
         if(link === undefined) return new ImageInfoUnresolve(srcUrl);
 
         const linkSplit : string[] = link.split('/');
+        if(linkSplit.length === 6 && linkSplit[4] === 'photo'){
+            const username : string = linkSplit[1];
+            const tweetId : string = linkSplit[3];
+            const imageIndex : number = parseInt(linkSplit[5], 10) - 1;
+
+            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl);
+        }
+        else{
+            return new ImageInfoUnresolve(srcUrl);
+        }
+    }
+}
+
+/**
+ * Resolver (twitter.com new UI detail modal)
+ */
+class Resolever_TwitterNewPreview implements ImageInfoResolver{
+
+    private linkUrl : string;
+
+    constructor(linkUrl : string){
+        this.linkUrl = linkUrl;
+    }
+
+    public resolveImageInfo(srcUrl : string) : ImageInfo{
+        const path : string = this.linkUrl.slice("https://twitter.com".length);
+
+        const linkSplit : string[] = path.split('/');
         if(linkSplit.length === 6 && linkSplit[4] === 'photo'){
             const username : string = linkSplit[1];
             const tweetId : string = linkSplit[3];
