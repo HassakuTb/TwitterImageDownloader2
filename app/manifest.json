@@ -1,4 +1,9 @@
 {
+  "applications": {
+    "gecko": {
+      "id": "{905ac796-d4c9-4f71-a93c-1e5a1ed2050a}"
+    }
+  },
     "manifest_version" : 2,
     "name" : "Twitter Image Downloader",
     "short_name" : "TwiImgDLer",
