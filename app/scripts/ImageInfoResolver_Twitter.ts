@@ -7,19 +7,78 @@ interface ImageInfoResolver{
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>{
     console.log(request);
     if(request.name === 'twitterImageDL'){
-        const image : ImageInfo = new Resolver_TwitterOld().resolveImageInfo(request.srcUrl);
+        const resolver : ImageInfoResolver = ResolverSelector.getResolver(request.srcUrl, request.pageUrl);
+        const image : ImageInfo = resolver.resolveImageInfo(request.srcUrl);
         sendResponse(image);
     }
     return true;    //  sync
 });
+
+class ResolverSelector{
+    public static getResolver(srcUrl : string, pageUrl : string) : ImageInfoResolver{
+        const targets : JQuery = $(`img[src*="${srcUrl}"]`);
+
+        if(pageUrl.lastIndexOf("https://twitter.com", 0) === 0){
+            if(targets.closest('article').length > 0){
+                console.log("TIL use resolver for new twitter");
+                return new Resolever_TwitterNew();
+            }
+            else{
+                console.log("TIL use resolver for old twitter");
+                return new Resolver_TwitterOld(targets);
+            }
+        }
+        else if(pageUrl.lastIndexOf("https://tweetdeck.twitter.com", 0) === 0){
+            console.log("TIL use resolver for tweetdeck");
+            return new Resolver_Deck();
+        }
+        else{
+            console.log("TIL use resolver for unknown");
+            return new Resolver_Unknown();
+        }
+    }
+}
+
+/**
+ * Resolver (unknown)
+ */
+class Resolver_Unknown implements ImageInfoResolver{
+    public resolveImageInfo(srcUrl : string) : ImageInfo{
+        return new ImageInfoUnresolve(srcUrl);
+    }
+}
+
+/**
+ * Resolver (tweetdeck.twitter.com)
+ */
+class Resolver_Deck implements ImageInfoResolver{
+    public resolveImageInfo(srcUrl : string) : ImageInfo{
+        return new ImageInfoUnresolve(srcUrl);
+    }
+}
+
+/**
+ * Resolver (twitter.com new UI)
+ */
+class Resolever_TwitterNew implements ImageInfoResolver{
+    public resolveImageInfo(srcUrl : string) : ImageInfo{
+        return new ImageInfoUnresolve(srcUrl);
+    }
+}
 
 /**
  * Resolver (twitter.com old UI)
  */
 class Resolver_TwitterOld implements ImageInfoResolver{
 
+    private targets : JQuery;
+
+    constructor(targets : JQuery){
+        this.targets = targets;
+    }
+
     public resolveImageInfo(srcUrl : string) : ImageInfo{
-        const images = $(`img[src*="${srcUrl}"]`);
+        const images = this.targets;
 
         let isAdaptiveImage = false;
         let targetImage = images.first();

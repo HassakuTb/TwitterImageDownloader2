@@ -26,10 +26,11 @@ chrome.runtime.onInstalled.addListener(() => {
             'image'
         ],
         documentUrlPatterns: [
-            '*://twitter.com/*'
+            'https://twitter.com/*',
+            'https://tweetdeck.twitter.com/*'
         ],
         targetUrlPatterns: [
-            '*://pbs.twimg.com/media/*'
+            'https://pbs.twimg.com/media/*'
         ],
     });
 });
@@ -43,7 +44,7 @@ chrome.contextMenus.onClicked.addListener((info : chrome.contextMenus.OnClickDat
     if(tab === null || tab === undefined) return;
     chrome.tabs.sendMessage(
         tab.id === undefined ? 0 : tab.id,
-        {name : 'twitterImageDL', srcUrl: info.srcUrl},
+        {name : 'twitterImageDL', srcUrl: info.srcUrl, pageUrl: info.pageUrl},
         (response : ImageInfo) =>{
             console.log(response);
             //  event page -> current page

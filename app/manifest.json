@@ -18,7 +18,8 @@
     "content_scripts":[
       {
         "matches" : [
-          "*://twitter.com/*"
+          "https://twitter.com/*",
+          "https://tweetdeck.twitter.com/*"
         ],
         "js":[
           "dist/content.bundle.js",
@@ -35,7 +36,7 @@
       "contextMenus",
       "downloads",
       "storage",
-      "*://twitter.com/*",
-      "*://tweetdeck.twitter.com/*"
+      "https://twitter.com/*",
+      "https://tweetdeck.twitter.com/*"
     ]
   }

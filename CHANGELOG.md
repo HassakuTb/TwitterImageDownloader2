@@ -1,11 +1,13 @@
 ## Unreleased
 ### Added
-
+「新しいTwitter」に対応
+TweetDeckに対応(画像を拡大表示中のみ)
 
 ### Changed
 内部実装を大幅に変更  
 旧UIのtwitter.comにて、画像のダウンロード元を新UIのtwitter.comで利用されているものに変更  
 ユーザー名が解決取得できないとき、ファイル名が「TIL-unknown-{画像ソースのURLの一部}.{拡張子}」になるように変更  
+HTTPSプロトコルのときのみ有効になるように変更
 
 ## 0.2.4 - 2018-02-23
 ### Fixed
