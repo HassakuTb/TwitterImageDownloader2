@@ -11,6 +11,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>{
         const image : ImageInfo = resolver.resolveImageInfo(request.srcUrl);
         sendResponse(image);
     }
+    else if(request.name === 'twitterImageDLLink'){
+        const resolver : ImageInfoResolver = ResolverSelector.getResolverForLink(request.srcUrl);
+        const image : ImageInfo = resolver.resolveImageInfo(request.srcUrl);
+        sendResponse(image);
+    }
     return true;    //  sync
 });
 
@@ -32,17 +37,20 @@ class ResolverSelector{
                 return new Resolver_TwitterOld(targets);
             }
         }
-        else if(pageUrl.lastIndexOf("https://tweetdeck.twitter.com", 0) === 0){
-            console.log("TIL use resolver for tweetdeck");
-            return new Resolver_Deck();
-        }
         else{
             console.log("TIL use resolver for unknown");
             return new Resolver_Unknown();
         }
     }
 
-    public static isPhotoUrl(url : string) : boolean{
+    public static getResolverForLink(srcUrl : string) : ImageInfoResolver{
+        const targets : JQuery = $(`img[src*="${srcUrl}"]`);
+        
+        console.log("TIL use resolver for tweetdeck");
+        return new Resolver_Deck_Media(targets);
+    }
+
+    private static isPhotoUrl(url : string) : boolean{
         const path : string = url.slice("https://twitter.com".length);
 
         const linkSplit : string[] = path.split('/');
@@ -51,18 +59,45 @@ class ResolverSelector{
 }
 
 /**
- * Resolver (unknown)
+ * Resolver tweetdeck <img>
  */
-class Resolver_Unknown implements ImageInfoResolver{
+class Resolver_Deck_Media implements ImageInfoResolver{
+    
+    private targets : JQuery;
+
+    constructor(targets : JQuery){
+        this.targets = targets;
+    }
+
     public resolveImageInfo(srcUrl : string) : ImageInfo{
-        return new ImageInfoUnresolve(srcUrl);
+        const article: JQuery = this.targets.closest('article');
+        let tweetId : string | undefined = undefined;
+        let username : string | undefined = undefined;
+        if(article.length > 0){
+            tweetId = article.attr('data-tweet-id');
+            const userLink : string | undefined = article.find('a.account-link').attr('href');
+            if(userLink !== undefined) username = userLink!.slice('https://twitter.com/'.length);
+        }
+        else{
+            const modal = this.targets.closest('.js-modal-panel');
+            tweetId = modal.find('div[data-key]').attr('data-key');
+            const userLink : string | undefined = modal.find('a.account-link').attr('href');
+            if(userLink !== undefined) username = userLink!.slice('https://twitter.com/'.length);
+        }
+
+        if(username === undefined || tweetId === undefined){
+            return new ImageInfoUnresolve(srcUrl);
+        }
+        else{
+            return new ImageInfoImpl(username, tweetId, null, srcUrl);
+        }
     }
 }
 
 /**
- * Resolver (tweetdeck.twitter.com)
+ * Resolver (unknown)
  */
-class Resolver_Deck implements ImageInfoResolver{
+class Resolver_Unknown implements ImageInfoResolver{
     public resolveImageInfo(srcUrl : string) : ImageInfo{
         return new ImageInfoUnresolve(srcUrl);
     }
