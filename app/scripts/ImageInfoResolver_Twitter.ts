@@ -21,7 +21,7 @@ class ResolverSelector{
         if(pageUrl.lastIndexOf("https://twitter.com", 0) === 0){
             if(targets.closest('article').length > 0){
                 console.log("TIL use resolver for new twitter");
-                return new Resolever_TwitterNew();
+                return new Resolever_TwitterNew(targets);
             }
             else{
                 console.log("TIL use resolver for old twitter");
@@ -61,8 +61,26 @@ class Resolver_Deck implements ImageInfoResolver{
  * Resolver (twitter.com new UI)
  */
 class Resolever_TwitterNew implements ImageInfoResolver{
+
+    private targets : JQuery;
+
+    constructor(targets : JQuery){
+        this.targets = targets;
+    }
+
     public resolveImageInfo(srcUrl : string) : ImageInfo{
-        return new ImageInfoUnresolve(srcUrl);
+        const targetImage : JQuery = this.targets.first();
+        const link : string | undefined = targetImage.closest('a').attr('href');
+        console.log("TIL target link : " + link);
+
+        if(link === undefined) return new ImageInfoUnresolve(srcUrl);
+
+        const linkSplit : string[] = link.split('/');
+        const username : string = linkSplit[1];
+        const tweetId : string = linkSplit[3];
+        const imageIndex : number = parseInt(linkSplit[5], 10) - 1;
+
+        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl);
     }
 }
 
