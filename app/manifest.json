@@ -1,9 +1,4 @@
 {
-  "applications": {
-    "gecko": {
-      "id": "twitterImageDL@hassaku.blue"
-    }
-  },
     "manifest_version" : 2,
     "name" : "Twitter Image Downloader",
     "short_name" : "TwiImgDLer",
