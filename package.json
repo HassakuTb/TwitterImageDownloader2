@@ -1,6 +1,6 @@
 {
   "name": "twitterimagedownloader",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Chrome Extension for download image in twitter",
   "main": "index.js",
   "scripts": {
