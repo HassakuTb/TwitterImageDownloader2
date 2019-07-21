@@ -8,7 +8,7 @@ export class LocalStorageSetting implements Setting{
     public readonly open_save_as : false;
 
     constructor(localStorage : any){
-        this.download_to = localStorage.download_to ? localStorage.download_to : 'TwitterImageDLer';
-        this.open_save_as = localStorage.open_save_as ? localStorage.open_save_as : false;
+        this.download_to = localStorage.download_to !== null && localStorage.download_to !== undefined ? localStorage.download_to : 'TwitterImageDLer';
+        this.open_save_as = localStorage.open_save_as !== null && localStorage.open_save_as !== undefined ? localStorage.open_save_as : false;
     }
 }
