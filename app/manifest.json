@@ -29,7 +29,7 @@
     ],
     "options_ui" : {
       "page" : "dist/options.html",
-      "chrome_style" : true
+      "chrome_style" : false
     },
     "permissions" : [
       "tabs",

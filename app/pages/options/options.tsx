@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Component } from 'react';
 import styled from 'styled-components';
+import { OptionsForm } from './components/OptionsForm';
 
 const Layout = styled.div`
   padding: 40px;
@@ -12,7 +13,7 @@ class Options extends Component{
   render(): JSX.Element{
     return(
       <Layout>
-        HELLO!!
+        <OptionsForm />
       </Layout>
     );
   }
