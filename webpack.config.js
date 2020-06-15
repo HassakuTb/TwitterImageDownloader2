@@ -1,26 +1,41 @@
-module.exports ={
-    mode: "production",
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-    entry: {
-        'app/dist/background' : "./app/scripts/Background.ts",
-        'app/dist/content' : "./app/scripts/ImageInfoResolver_Twitter.ts",
-    },
+module.exports = {
+	mode: "production",
 
-    output: {
-        path: __dirname,
-        filename: '[name].bundle.js',
-    },
+	entry: {
+		'options': "./app/pages/options/options.tsx",
+		'background': "./app/scripts/Background.ts",
+		'content': "./app/scripts/ImageInfoResolver_Twitter.ts",
+	},
 
-    module: {
-        rules: [
-            {
-                test: /\.ts$/,
-                use: "ts-loader"
-            }
-        ]
-    },
+	output: {
+		path: `${__dirname}/app/dist`,
+		filename: '[name].bundle.js',
+	},
 
-    resolve: {
-        extensions: [".ts"]
-    }
+	module: {
+		rules: [
+			{
+				test: /\.tsx?$/,
+				use: "ts-loader"
+			},
+      {
+        test: /\.html$/,
+        loader: "html-loader"
+      },
+		]
+	},
+
+  plugins:[
+    new HtmlWebpackPlugin({
+      chunks: ["options"],
+			filename: "options.html",
+			title: "Twitter Image Downloader Options",
+    }),
+	],
+	
+	resolve: {
+		extensions: [".ts", ".tsx", ".js", ".jsx"]
+	}
 }
