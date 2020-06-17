@@ -5,7 +5,7 @@ import { SaveButton } from './SaveButton';
 import { Spinner } from './Spinner';
 import { DownloadToField } from './DownloadToField';
 import { EnableSaveAsField } from './EnableSaveAsField';
-import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2 } from '../../../scripts/Setting';
+import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagExtension } from '../../../scripts/Setting';
 
 const Layout = styled.div`
   display: flex;
@@ -23,6 +23,8 @@ interface OptionState{
   isLoaded: boolean;
   dirnameDownloadTo: string;
   enableOpenSaveAs: boolean;
+  isValidWithEmptyFilename: boolean;
+  isValidWithParse: boolean;
 }
 
 export class OptionsForm extends Component<any, OptionState>{
@@ -34,6 +36,8 @@ export class OptionsForm extends Component<any, OptionState>{
       isLoaded : false,
       dirnameDownloadTo: defaultDirnameDownloadTo,
       enableOpenSaveAs: defaultEnableOpenSaveAs,
+      isValidWithEmptyFilename: false,
+      isValidWithParse: false,
     }
   }
 
@@ -71,6 +75,8 @@ export class OptionsForm extends Component<any, OptionState>{
         isLoaded: true,
         dirnameDownloadTo: setting.download_to!,
         enableOpenSaveAs: setting.open_save_as!,
+        isValidWithEmptyFilename: this.isValidWithEmptyFilename(setting.download_to!),
+        isValidWithParse: this.isValidWithParse(setting.download_to!),
       });
     });
   }
@@ -79,13 +85,42 @@ export class OptionsForm extends Component<any, OptionState>{
     this.restoreOptions();
   }
 
+  private isValidWithParse(newName: string){
+    let s: string = newName;
+    s = s.replace(TagUserId, "");
+    s = s.replace(TagTweetId, "");
+    s = s.replace(TagImageIndex, "");
+    s = s.replace(TagExtension, "");
+    return !(s.includes("<") || s.includes(">"));
+  }
+
+  private isValidWithEmptyFilename(newName: string){
+    return newName.split("/").every(x => x.trim().length > 0);
+  }
+
+  private onChangeFilename(newName: string){
+    this.setState({
+      dirnameDownloadTo: newName,
+      isValidWithEmptyFilename: this.isValidWithEmptyFilename(newName),
+      isValidWithParse: this.isValidWithParse(newName),
+    });
+  }
+
+  private get canSave(): boolean{
+    return this.state.isValidWithEmptyFilename && this.state.isValidWithParse;
+  }
+
   public render(): JSX.Element{
     if(this.state.isLoaded){
       return(
         <Layout>
           <EnableSaveAsField isOn={this.state.enableOpenSaveAs} onClick={() => this.setState({enableOpenSaveAs: !this.state.enableOpenSaveAs})}/>
-          <DownloadToField value={this.state.dirnameDownloadTo} onChange={v => this.setState({dirnameDownloadTo: v})} />
-          <SaveButton onClick={()=>this.saveOptions()} />
+          <DownloadToField
+            isValidWithEmptyFilename={this.state.isValidWithEmptyFilename}
+            isValidWithParse={this.state.isValidWithParse}
+            value={this.state.dirnameDownloadTo}
+            onChange={v => this.onChangeFilename(v)} />
+          <SaveButton disabled={!this.canSave} onClick={()=>this.saveOptions()} />
         </Layout>
       );
     }

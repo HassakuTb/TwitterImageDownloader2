@@ -6,7 +6,8 @@ import { TextField } from './TextField';
 import { TagUserId, TagTweetId, TagImageIndex, TagExtension, DefaultFilename } from '../../../scripts/Setting';
 import { SetToDefaultButton } from './SetToDefaultButton';
 
-const InvalidMessage = "directory name can not set to an empty.";
+const InvalidWithEmptyFilename = "Directory name or filename name can not set to an empty.";
+const InvalidWithParse = "Can not parse inputed filename.";
 
 const Container = styled.div`
   box-sizing: border-box;
@@ -27,11 +28,15 @@ const Label = styled.span<{}>`
   margin-bottom: 4px;
 `;
 
-const ValidationBlock = styled.span<{}>`
+const ValidationBlock = styled.div<{}>`
+  min-height: 4em;
+`;
+
+const InvalidText = styled.span<{}>`
+  display: block;
+
   font-size: 14px;
   color: ${AppColor.errorMessage};
-
-  min-height: 3em;
 `;
 
 const InformationText = styled.span<{}>`
@@ -49,30 +54,37 @@ const Paragraph = styled.p`
 interface Property{
   value: string;
   onChange: (value: string) => void;
+  isValidWithEmptyFilename: boolean;
+  isValidWithParse: boolean;
 }
 
-interface State{
-  isValid: boolean;
-}
-
-export class DownloadToField extends Component<Property, State>{
-
-  constructor(props: Property){
-    super(props);
-
-    this.state ={
-      isValid : this.isValid(props.value)
-    };
-  }
-
-  private isValid(text: string): boolean{
-    if(text.trim().length === 0) return true;
-    else return text.split("/").every(x => x.trim().length > 0);
-  }
+export class DownloadToField extends Component<Property>{
 
   private setToDefaultFilename(): void{
     this.setState({isValid: true})
     this.props.onChange(`TwitterImageDLer/${DefaultFilename}`);
+  }
+
+  private get isValid(): boolean{
+    return this.props.isValidWithEmptyFilename && this.props.isValidWithParse;
+  }
+
+  private renderInvalidEmpty(): JSX.Element | null{
+    if(this.props.isValidWithEmptyFilename) return null;
+    else return(
+      <InvalidText>
+        {InvalidWithEmptyFilename}
+      </InvalidText>
+    );
+  }
+
+  private renderInvalidParse(): JSX.Element | null{
+    if(this.props.isValidWithParse) return null;
+    else return(
+      <InvalidText>
+        {InvalidWithParse}
+      </InvalidText>
+    );
   }
 
   public render(): JSX.Element{
@@ -82,15 +94,13 @@ export class DownloadToField extends Component<Property, State>{
         <TextField
           value={this.props.value}
           placeholder="input filename here"
-          isValid={this.state.isValid}
-          onChange={(v) =>{
-            this.setState({isValid: this.isValid(v)})
-            this.props.onChange(v);
-          }}
+          isValid={this.isValid}
+          onChange={(v) =>{this.props.onChange(v)}}
           processPostChange={v => v.trim().replace('\\', '/').replace(/[#:,*?"|]/g, '_')}
         ></TextField>
         <ValidationBlock>
-          {this.state.isValid ? "" : InvalidMessage}
+          {this.renderInvalidEmpty()}
+          {this.renderInvalidParse()}
         </ValidationBlock>
         <div>
           <Paragraph>

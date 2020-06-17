@@ -26,6 +26,13 @@ const StyledButton = styled.button<{}>`
   &:hover{
     opacity: 0.8;
   }
+
+  &:disabled{
+    opacity: 0.4;
+
+    cursor: default;
+    box-shadow: none;
+  }
 `;
 
 interface Property{
