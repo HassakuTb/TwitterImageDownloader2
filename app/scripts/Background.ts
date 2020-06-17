@@ -31,35 +31,33 @@ function downloadImage(image: ImageInfo): void {
 /**
  * create context menu
  */
-chrome.runtime.onInstalled.addListener(() => {
-	chrome.contextMenus.create({
-		type: 'normal',
-		id: 'downloadTwitterImage',
-		title: 'download original image',
-		contexts: [
-			'image'
-		],
-		documentUrlPatterns: [
-			'https://twitter.com/*'
-		],
-		targetUrlPatterns: [
-			'https://pbs.twimg.com/media/*'
-		],
-	});
-	chrome.contextMenus.create({
-		type: 'normal',
-		id: 'downloadTwitterImageLink',
-		title: 'download original image',
-		contexts: [
-			'image'
-		],
-		documentUrlPatterns: [
-			'https://tweetdeck.twitter.com/*'
-		],
-		targetUrlPatterns: [
-			'https://pbs.twimg.com/media/*'
-		],
-	});
+chrome.contextMenus.create({
+	type: 'normal',
+	id: 'downloadTwitterImage',
+	title: 'download original image',
+	contexts: [
+		'image'
+	],
+	documentUrlPatterns: [
+		'https://twitter.com/*'
+	],
+	targetUrlPatterns: [
+		'https://pbs.twimg.com/media/*'
+	],
+});
+chrome.contextMenus.create({
+	type: 'normal',
+	id: 'downloadTwitterImageLink',
+	title: 'download original image',
+	contexts: [
+		'image'
+	],
+	documentUrlPatterns: [
+		'https://tweetdeck.twitter.com/*'
+	],
+	targetUrlPatterns: [
+		'https://pbs.twimg.com/media/*'
+	],
 });
 
 const sendMessage: (name: string, pageUrl: string, format: string, tabId?: number, srcUrl?: string) => void =
