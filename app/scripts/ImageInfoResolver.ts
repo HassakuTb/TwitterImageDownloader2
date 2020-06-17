@@ -1,19 +1,20 @@
 import { ImageInfo, ImageInfoUnresolve, ImageInfoImpl } from "./ImageInfo";
 
 interface ImageInfoResolver{
-    resolveImageInfo(srcUrl : string) : ImageInfo;
+    resolveImageInfo(srcUrl : string, format: string) : ImageInfo;
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>{
+    console.log("TIL request: ");
     console.log(request);
     if(request.name === 'twitterImageDL'){
         const resolver : ImageInfoResolver = ResolverSelector.getResolver(request.srcUrl, request.pageUrl);
-        const image : ImageInfo = resolver.resolveImageInfo(request.srcUrl);
+        const image : ImageInfo = resolver.resolveImageInfo(request.srcUrl, request.format);
         sendResponse(image);
     }
     else if(request.name === 'twitterImageDLLink'){
         const resolver : ImageInfoResolver = ResolverSelector.getResolverForLink(request.srcUrl);
-        const image : ImageInfo = resolver.resolveImageInfo(request.srcUrl);
+        const image : ImageInfo = resolver.resolveImageInfo(request.srcUrl, request.format);
         sendResponse(image);
     }
     return true;    //  sync
@@ -69,7 +70,7 @@ class Resolver_Deck_Media implements ImageInfoResolver{
         this.targets = targets;
     }
 
-    public resolveImageInfo(srcUrl : string) : ImageInfo{
+    public resolveImageInfo(srcUrl : string, format: string) : ImageInfo{
         const article: JQuery = this.targets.closest('article');
         let tweetId : string | undefined = undefined;
         let username : string | undefined = undefined;
@@ -89,7 +90,7 @@ class Resolver_Deck_Media implements ImageInfoResolver{
             return new ImageInfoUnresolve(srcUrl);
         }
         else{
-            return new ImageInfoImpl(username, tweetId, null, srcUrl);
+            return new ImageInfoImpl(username, tweetId, 1, srcUrl, format);
         }
     }
 }
@@ -114,7 +115,7 @@ class Resolever_TwitterNew implements ImageInfoResolver{
         this.targets = targets;
     }
 
-    public resolveImageInfo(srcUrl : string) : ImageInfo{
+    public resolveImageInfo(srcUrl : string, format: string) : ImageInfo{
         const targetImage : JQuery = this.targets.first();
         const link : string | undefined = targetImage.closest('a').attr('href');
         console.log("TIL target link : " + link);
@@ -127,7 +128,7 @@ class Resolever_TwitterNew implements ImageInfoResolver{
             const tweetId : string = linkSplit[3];
             const imageIndex : number = parseInt(linkSplit[5], 10) - 1;
 
-            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl);
+            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format);
         }
         else{
             return new ImageInfoUnresolve(srcUrl);
@@ -146,7 +147,7 @@ class Resolever_TwitterNewPreview implements ImageInfoResolver{
         this.linkUrl = linkUrl;
     }
 
-    public resolveImageInfo(srcUrl : string) : ImageInfo{
+    public resolveImageInfo(srcUrl : string, format: string) : ImageInfo{
         const path : string = this.linkUrl.slice("https://twitter.com".length);
 
         const linkSplit : string[] = path.split('/');
@@ -155,7 +156,7 @@ class Resolever_TwitterNewPreview implements ImageInfoResolver{
             const tweetId : string = linkSplit[3];
             const imageIndex : number = parseInt(linkSplit[5], 10) - 1;
 
-            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl);
+            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format);
         }
         else{
             return new ImageInfoUnresolve(srcUrl);
@@ -174,7 +175,7 @@ class Resolver_TwitterOld implements ImageInfoResolver{
         this.targets = targets;
     }
 
-    public resolveImageInfo(srcUrl : string) : ImageInfo{
+    public resolveImageInfo(srcUrl : string, format: string) : ImageInfo{
         const images = this.targets;
 
         let isAdaptiveImage = false;
@@ -190,16 +191,16 @@ class Resolver_TwitterOld implements ImageInfoResolver{
         }
 
         if(isAdaptiveImage){
-            return this.getInfoFromTimeline(targetImage, srcUrl);
+            return this.getInfoFromTimeline(targetImage, srcUrl, format);
         }
         else if(targetImage.parent('.Gallery-media').length > 0){
-            return this.getInfoFromGallery(targetImage, srcUrl);
+            return this.getInfoFromGallery(targetImage, srcUrl, format);
         }
         else if(targetImage.parent('.QuoteMedia-photoContainer').length > 0){
-            return this.getinfoFromNotification(targetImage, srcUrl);
+            return this.getinfoFromNotification(targetImage, srcUrl, format);
         }
         else if(targetImage.hasClass('MomentMediaItem-entity')){
-            return this.getInfoFromMoment(targetImage, srcUrl);
+            return this.getInfoFromMoment(targetImage, srcUrl, format);
         }
         else{
             return new ImageInfoUnresolve(srcUrl);
@@ -210,7 +211,7 @@ class Resolver_TwitterOld implements ImageInfoResolver{
     //  download from single gallery
     //  param image : jquery object <img>
     //  param srcUrl : twimg url
-    private getInfoFromGallery(image : JQuery, srcUrl : string) : ImageInfo{
+    private getInfoFromGallery(image : JQuery, srcUrl : string, format: string) : ImageInfo{
         console.log("download from gallery")
     
         const imageIndex = 0; //  in gallery, always single image
@@ -224,13 +225,13 @@ class Resolver_TwitterOld implements ImageInfoResolver{
             return new ImageInfoUnresolve(srcUrl);
         }
     
-        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl);
+        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format);
     }
     
     //  download from timeline of tweet detail
     //  param image : jquery object <img>
     //  param srcUrl : twimg url
-    private getInfoFromTimeline(image : JQuery, srcUrl : string) : ImageInfo{
+    private getInfoFromTimeline(image : JQuery, srcUrl : string, format: string) : ImageInfo{
         console.log("download from timeline")
     
         const mediaContainer = image.closest('.AdaptiveMedia-container');
@@ -252,13 +253,13 @@ class Resolver_TwitterOld implements ImageInfoResolver{
             return new ImageInfoUnresolve(srcUrl);
         }
     
-        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl);
+        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format);
     }
     
     //  download from notification and quote
     //  param image : jquery object <img>
     //  param srcUrl : twimg url
-    private getinfoFromNotification(image : JQuery, srcUrl : string) : ImageInfo{
+    private getinfoFromNotification(image : JQuery, srcUrl : string, format: string) : ImageInfo{
         console.log("download from quote")
     
         const imageIndex = 0; //  in notification, always single image
@@ -272,21 +273,19 @@ class Resolver_TwitterOld implements ImageInfoResolver{
             return new ImageInfoUnresolve(srcUrl);
         }
     
-        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl);
+        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format);
     }
     
     //  download from moment cover
     //  moment contents is not image
     //  param image : jquery object <img>
     //  param srcUrl : twimg url
-    private getInfoFromMoment(image : JQuery, srcUrl : string) : ImageInfo{
+    private getInfoFromMoment(image : JQuery, srcUrl : string, format: string) : ImageInfo{
         console.log("download from moment cover")
     
         const coverContainer = image.closest('.MomentCapsuleCover-media');
         const username = coverContainer.find('[data-screen-name]').attr('data-screen-name');
         const tweetId = coverContainer.find('[data-tweet-id]').attr('data-tweet-id');
-    
-        const imageIndex = null; //  cover image is not certain index
 
         if(username === undefined || username === null){
             return new ImageInfoUnresolve(srcUrl);
@@ -295,6 +294,6 @@ class Resolver_TwitterOld implements ImageInfoResolver{
             return new ImageInfoUnresolve(srcUrl);
         }
     
-        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl);
+        return new ImageInfoImpl(username, tweetId, 1, srcUrl, format);
     }
 }

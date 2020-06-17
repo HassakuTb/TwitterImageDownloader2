@@ -1,14 +1,38 @@
-export interface Setting{
-    readonly download_to : string;
-    readonly open_save_as : false;
+const LatestDataVersion: number = 2;
+
+export const TagUserId: string = "<userid>";
+export const TagTweetId: string = "<tweetid>";
+export const TagImageIndex: string = "<imageindex>";
+export const TagExtension: string = "<ext>";
+
+export const DefaultFilename: string = `${TagUserId}-${TagTweetId}-${TagImageIndex}.${TagExtension}`;
+
+export const CreateDefaultSetting: () => Setting = () => {
+	return {
+		download_to: `TwitterImageDLer/${DefaultFilename}`,
+		open_save_as: false,
+		data_version: LatestDataVersion,
+	}
+};
+
+export const MigrateSetting1to2: (old: Setting) => Setting = (old: Setting) =>{
+	const download_to = old.download_to!.length === 0 ?
+		`${DefaultFilename}` :
+		`${old.download_to}/${DefaultFilename}`;
+
+	return {
+		download_to: download_to,
+		open_save_as: old.open_save_as,
+		data_version: LatestDataVersion,
+	}
 }
 
-export class LocalStorageSetting implements Setting{
-    public readonly download_to : string;
-    public readonly open_save_as : false;
+export const IsLatestDataVersion: (setting: Setting) => boolean = (setting: Setting) =>{
+	return setting.data_version === LatestDataVersion;
+}
 
-    constructor(localStorage : any){
-        this.download_to = localStorage.download_to !== null && localStorage.download_to !== undefined ? localStorage.download_to : 'TwitterImageDLer';
-        this.open_save_as = localStorage.open_save_as !== null && localStorage.open_save_as !== undefined ? localStorage.open_save_as : false;
-    }
+export interface Setting {
+	download_to?: string;
+	open_save_as?: boolean;
+	data_version?: number;
 }
