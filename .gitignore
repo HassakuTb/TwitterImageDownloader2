@@ -2,3 +2,4 @@ node_modules/
 /app/tsdists/
 /dist/
 /app/dist/
+/tmp/

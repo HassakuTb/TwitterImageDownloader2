@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import { AppColor } from '../Colors';
 
 const StyledTextbox = styled.input<{}>`
+  box-sizing: border-box;
+
   border-style: solid;
   border-color: ${AppColor.primary};
   border-width: 2px;
@@ -16,9 +18,13 @@ const StyledTextbox = styled.input<{}>`
 
   color: ${AppColor.black};
 
-  width: 20em;
+  width: 100%;
 
   background-color: white;
+
+  &::placeholder{
+    color: ${AppColor.placeholder};
+  }
 
   &:focus{
     background-color: ${AppColor.focus};
@@ -32,6 +38,7 @@ const StyledTextbox = styled.input<{}>`
 interface Property{
   value: string;
   isValid: boolean;
+  placeholder: string;
   onChange: (value: string) => void;
   processPostChange: (text: string) => string;
 }
@@ -63,6 +70,7 @@ export class TextField extends Component<Property>{
     return(
       <StyledTextbox
         type="text"
+        placeholder={this.props.placeholder}
         className={this.props.isValid ? "" : "invalid"}
         value={this.props.value}
         onChange={(e) => this.onChange(e)}

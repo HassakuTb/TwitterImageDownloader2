@@ -5,6 +5,7 @@ import { SaveButton } from './SaveButton';
 import { Spinner } from './Spinner';
 import { DownloadToField } from './DownloadToField';
 import { EnableSaveAsField } from './EnableSaveAsField';
+import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2 } from '../../../scripts/Setting';
 
 const Layout = styled.div`
   display: flex;
@@ -42,6 +43,7 @@ export class OptionsForm extends Component<any, OptionState>{
     chrome.storage.local.set({
       download_to: this.state.dirnameDownloadTo,
       open_save_as: this.state.enableOpenSaveAs,
+      data_version: 2,
     }, () =>{
       this.setState({
         isLoaded: true,
@@ -54,12 +56,21 @@ export class OptionsForm extends Component<any, OptionState>{
   private restoreOptions(): void{
     chrome.storage.local.get({
       download_to : defaultDirnameDownloadTo,
-      open_save_as : defaultEnableOpenSaveAs
-    }, (items: {[key: string]: any}) => {
+      open_save_as : defaultEnableOpenSaveAs,
+      data_version : 1,
+    }, (items: any) => {
+      
+      let setting: Setting = (items.download_to === undefined || items.download_to === null) ?
+        CreateDefaultSetting() : (items as Setting);
+  
+      if(!IsLatestDataVersion(setting)){
+        setting = MigrateSetting1to2(setting);
+      }
+
       this.setState({
         isLoaded: true,
-        dirnameDownloadTo: items.download_to,
-        enableOpenSaveAs: items.open_save_as,
+        dirnameDownloadTo: setting.download_to!,
+        enableOpenSaveAs: setting.open_save_as!,
       });
     });
   }
@@ -72,8 +83,8 @@ export class OptionsForm extends Component<any, OptionState>{
     if(this.state.isLoaded){
       return(
         <Layout>
-          <DownloadToField value={this.state.dirnameDownloadTo} onChange={v => this.setState({dirnameDownloadTo: v})} />
           <EnableSaveAsField isOn={this.state.enableOpenSaveAs} onClick={() => this.setState({enableOpenSaveAs: !this.state.enableOpenSaveAs})}/>
+          <DownloadToField value={this.state.dirnameDownloadTo} onChange={v => this.setState({dirnameDownloadTo: v})} />
           <SaveButton onClick={()=>this.saveOptions()} />
         </Layout>
       );

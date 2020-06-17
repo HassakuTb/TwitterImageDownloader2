@@ -6,6 +6,8 @@ import { OptionsForm } from './components/OptionsForm';
 
 const Layout = styled.div`
   padding: 40px;
+  padding-top: 8px;
+  padding-bottom: 20px;
 `;
 
 class Options extends Component{

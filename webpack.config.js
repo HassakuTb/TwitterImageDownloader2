@@ -6,7 +6,7 @@ module.exports = {
 	entry: {
 		'options': "./app/pages/options/options.tsx",
 		'background': "./app/scripts/Background.ts",
-		'content': "./app/scripts/ImageInfoResolver_Twitter.ts",
+		'content': "./app/scripts/ImageInfoResolver.ts",
 	},
 
 	output: {

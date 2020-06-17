@@ -15,14 +15,12 @@ const Container = styled.div<{}>`
 
   margin-bottom: 16px;
 
-  height: 42px;
-
   border-style: solid;
   border-width: 1px;
   border-color: ${AppColor.primary};
   border-radius: 4px;
 
-  padding: 8px 16px;
+  padding: 4px 16px;
 
   opacity: 1px;
 
