@@ -3,7 +3,7 @@ import { Component } from 'react';
 import styled from 'styled-components';
 import { AppColor } from '../Colors';
 import { TextField } from './TextField';
-import { TagUserId, TagTweetId, TagImageIndex, TagExtension, DefaultFilename } from '../../../scripts/Setting';
+import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, DefaultFilename } from '../../../scripts/Setting';
 import { SetToDefaultButton } from './SetToDefaultButton';
 
 const InvalidWithEmptyFilename = "Directory name or filename name can not set to an empty.";
@@ -108,11 +108,12 @@ export class DownloadToField extends Component<Property>{
             <InformationText>{`e.g. "${TagUserId}/${TagTweetId}.${TagExtension}" makes directory for each users.`}</InformationText>
           </Paragraph>
           <Paragraph>
-            <InformationText>{`You can use followings.`}</InformationText>
-            <InformationText>{`${TagUserId} : user id`}</InformationText>
-            <InformationText>{`${TagTweetId} : tweet id`}</InformationText>
-            <InformationText>{`${TagImageIndex} : index of image (1...4). if image was single, replace with "1"`}</InformationText>
-            <InformationText>{`${TagExtension} : "png" or "jpg"`}</InformationText>
+            <InformationText>{`You can use following variables.`}</InformationText>
+            <InformationText>{`${TagUserId} : User ID`}</InformationText>
+            <InformationText>{`${TagTweetId} : Tweet ID`}</InformationText>
+            <InformationText>{`${TagImageIndex} : Index of image (0...3). If there is a single image, the number will be "0".`}</InformationText>
+            <InformationText>{`${TagOriginal} : Original file name`}</InformationText>
+            <InformationText>{`${TagExtension} : File extension ("png" or "jpg").`}</InformationText>
           </Paragraph>
           <Paragraph>
             <InformationText>{`Default value is "TwitterImageDLer/${DefaultFilename}".`}</InformationText>
