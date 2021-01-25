@@ -1,3 +1,4 @@
+import $ from "jquery";
 import { ImageInfo, ImageInfoUnresolve, ImageInfoImpl } from "./ImageInfo";
 
 interface ImageInfoResolver{
