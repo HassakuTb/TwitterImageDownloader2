@@ -5,7 +5,7 @@ import { SaveButton } from './SaveButton';
 import { Spinner } from './Spinner';
 import { DownloadToField } from './DownloadToField';
 import { EnableSaveAsField } from './EnableSaveAsField';
-import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagExtension } from '../../../scripts/Setting';
+import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension } from '../../../scripts/Setting';
 
 const Layout = styled.div`
   display: flex;
@@ -90,6 +90,7 @@ export class OptionsForm extends Component<any, OptionState>{
     s = s.replace(TagUserId, "");
     s = s.replace(TagTweetId, "");
     s = s.replace(TagImageIndex, "");
+    s = s.replace(TagOriginal, "");
     s = s.replace(TagExtension, "");
     return !(s.includes("<") || s.includes(">"));
   }

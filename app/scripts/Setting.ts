@@ -3,6 +3,7 @@ const LatestDataVersion: number = 2;
 export const TagUserId: string = "<userid>";
 export const TagTweetId: string = "<tweetid>";
 export const TagImageIndex: string = "<imageindex>";
+export const TagOriginal: string = "<original>"
 export const TagExtension: string = "<ext>";
 
 export const DefaultFilename: string = `${TagUserId}-${TagTweetId}-${TagImageIndex}.${TagExtension}`;
