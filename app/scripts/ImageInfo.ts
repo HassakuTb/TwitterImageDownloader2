@@ -1,4 +1,4 @@
-import { TagUserId, TagTweetId, TagImageIndex, TagExtension } from "./Setting";
+import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension } from "./Setting";
 
 const twimgBase: string = 'https://pbs.twimg.com/media/';
 
@@ -99,6 +99,7 @@ export class ImageInfoImpl implements ImageInfo {
 		filename = filename.replace(TagUserId, this.username);
 		filename = filename.replace(TagTweetId, this.tweetId);
 		filename = filename.replace(TagImageIndex, this.imageIndex.toString());
+		filename = filename.replace(TagOriginal, this.twimgUrl.path)
 		filename = filename.replace(TagExtension, this.twimgUrl.extension);
 		return filename;
 	}
