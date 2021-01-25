@@ -2,7 +2,7 @@
     "manifest_version" : 2,
     "name" : "Twitter Image Downloader",
     "short_name" : "TwiImgDLer",
-    "version" : "2.2.0",
+    "version" : "2.2.1",
     "description" : "Download and rename original image in twitter timeline",
     "icons" : {
       "16" : "images/icon16.png",
