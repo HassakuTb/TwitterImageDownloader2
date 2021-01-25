@@ -22,8 +22,7 @@
           "https://tweetdeck.twitter.com/*"
         ],
         "js":[
-          "dist/content.bundle.js",
-          "scripts/JQuery-3.4.1.min.js"
+          "dist/content.bundle.js"
         ]
       }
     ],
