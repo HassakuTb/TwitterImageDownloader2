@@ -6,6 +6,7 @@ import { Spinner } from './Spinner';
 import { DownloadToField } from './DownloadToField';
 import { EnableSaveAsField } from './EnableSaveAsField';
 import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension } from '../../../scripts/Setting';
+import { TagYear, TagMonth, TagDay } from '../../../scripts/Setting';
 
 const Layout = styled.div`
   display: flex;
@@ -92,6 +93,9 @@ export class OptionsForm extends Component<any, OptionState>{
     s = s.replace(TagImageIndex, "");
     s = s.replace(TagOriginal, "");
     s = s.replace(TagExtension, "");
+    s = s.replace(TagYear, "");
+    s = s.replace(TagMonth, "");
+    s = s.replace(TagDay, "");
     return !(s.includes("<") || s.includes(">"));
   }
 

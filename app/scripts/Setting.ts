@@ -1,5 +1,8 @@
 const LatestDataVersion: number = 2;
 
+export const TagYear: string = "<year>";
+export const TagMonth: string = "<month>";
+export const TagDay: string = "<day>";
 export const TagUserId: string = "<userid>";
 export const TagTweetId: string = "<tweetid>";
 export const TagImageIndex: string = "<imageindex>";

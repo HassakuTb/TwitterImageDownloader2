@@ -1,4 +1,5 @@
 import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension } from "./Setting";
+import { TagYear, TagMonth, TagDay } from "./Setting";
 
 const twimgBase: string = 'https://pbs.twimg.com/media/';
 
@@ -75,27 +76,32 @@ export class ImageInfoImpl implements ImageInfo {
 	private tweetId: string;
 	private imageIndex: number;
 	private twimgUrl: TwimgUrl;
+	private dateTime: Date;
 
 	public readonly filename: string;
 	public readonly downloadUrl: string;
 
 	constructor(username: string, tweetId: string, imageIndex: number, srcUrl: string, format: string) {
 		//  parse query parameter (twimg.com)
-		console.log(srcUrl);
+		// console.log(srcUrl);
 
 		this.username = username;
 		this.tweetId = tweetId;
 		this.imageIndex = imageIndex;
 		this.twimgUrl = new TwimgUrl(srcUrl);
+		this.dateTime = new Date();
 
 		this.downloadUrl = this.twimgUrl.downloadUrl;
-		console.log("downloadUrl : " + this.downloadUrl);
+		console.log(`downloadUrl : ${this.downloadUrl}`);
 
 		this.filename = this.createFileName(format);
 	}
 
 	createFileName(format: string): string{
 		let filename = format
+		filename = filename.replace(TagYear, String(this.dateTime.getFullYear()));
+		filename = filename.replace(TagMonth, String(this.dateTime.getMonth()+1));
+		filename = filename.replace(TagDay, String(this.dateTime.getDate()));
 		filename = filename.replace(TagUserId, this.username);
 		filename = filename.replace(TagTweetId, this.tweetId);
 		filename = filename.replace(TagImageIndex, this.imageIndex.toString());

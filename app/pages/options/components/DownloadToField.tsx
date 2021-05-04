@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { AppColor } from '../Colors';
 import { TextField } from './TextField';
 import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, DefaultFilename } from '../../../scripts/Setting';
+import { TagYear, TagMonth, TagDay } from '../../../scripts/Setting';
 import { SetToDefaultButton } from './SetToDefaultButton';
 
 const InvalidWithEmptyFilename = "Directory name or filename name can not set to an empty.";
@@ -88,6 +89,7 @@ export class DownloadToField extends Component<Property>{
   }
 
   public render(): JSX.Element{
+    let now = new Date();
     return(
       <Container>
         <Label>Filename</Label>
@@ -114,6 +116,9 @@ export class DownloadToField extends Component<Property>{
             <InformationText>{`${TagImageIndex} : Index of image (0...3). If there is a single image, the number will be "0".`}</InformationText>
             <InformationText>{`${TagOriginal} : Original file name`}</InformationText>
             <InformationText>{`${TagExtension} : File extension ("png" or "jpg").`}</InformationText>
+            <InformationText>{`${TagYear} : Current Year(${now.getFullYear()})`}</InformationText>
+            <InformationText>{`${TagMonth} : Current Month(${now.getMonth()+1})`}</InformationText>
+            <InformationText>{`${TagDay} : Current Date(${now.getDate()})`}</InformationText>
           </Paragraph>
           <Paragraph>
             <InformationText>{`Default value is "TwitterImageDLer/${DefaultFilename}".`}</InformationText>
