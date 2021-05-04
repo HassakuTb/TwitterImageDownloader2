@@ -37,13 +37,14 @@ chrome.runtime.onInstalled.addListener(() => {
 		id: 'downloadTwitterImage',
 		title: 'download original image',
 		contexts: [
-			'image'
+			'image','video'
 		],
 		documentUrlPatterns: [
 			'https://twitter.com/*'
 		],
 		targetUrlPatterns: [
-			'https://pbs.twimg.com/media/*'
+			'https://pbs.twimg.com/media/*',
+			'https://video.twimg.com/*',
 		],
 	});
 	chrome.contextMenus.create({
@@ -51,13 +52,14 @@ chrome.runtime.onInstalled.addListener(() => {
 		id: 'downloadTwitterImageLink',
 		title: 'download original image',
 		contexts: [
-			'image'
+			'image', 'video'
 		],
 		documentUrlPatterns: [
 			'https://tweetdeck.twitter.com/*'
 		],
 		targetUrlPatterns: [
-			'https://pbs.twimg.com/media/*'
+			'https://pbs.twimg.com/media/*',
+			'https://video.twimg.com/*',
 		],
 	});
 });
