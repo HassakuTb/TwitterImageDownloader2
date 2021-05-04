@@ -1,3 +1,4 @@
+const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -28,6 +29,7 @@ module.exports = {
 	},
 
   plugins:[
+	new webpack.SourceMapDevToolPlugin({}),
     new HtmlWebpackPlugin({
       chunks: ["options"],
 			filename: "options.html",
