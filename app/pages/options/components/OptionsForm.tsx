@@ -14,7 +14,7 @@ const Layout = styled.div`
   justify-content: flex-start;
   align-items: flex-start;
 
-  width: 600px;
+  width: 800px;
 `;
 
 const defaultDirnameDownloadTo: string = 'TwitterImageDLer';
