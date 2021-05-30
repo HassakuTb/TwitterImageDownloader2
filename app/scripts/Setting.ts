@@ -9,11 +9,11 @@ export const TagImageIndex: string = "<imageindex>";
 export const TagOriginal: string = "<original>"
 export const TagExtension: string = "<ext>";
 
-export const DefaultFilename: string = `${TagUserId}-${TagTweetId}-${TagImageIndex}.${TagExtension}`;
+export const DefaultFilename: string = `${TagYear}-${TagMonth}/${TagUserId}-${TagTweetId}-${TagImageIndex}.${TagExtension}`;
 
 export const CreateDefaultSetting: () => Setting = () => {
 	return {
-		download_to: `TwitterImageDLer/${DefaultFilename}`,
+		download_to: `Twitter/${DefaultFilename}`,
 		open_save_as: false,
 		data_version: LatestDataVersion,
 	}
