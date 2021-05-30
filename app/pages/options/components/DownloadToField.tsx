@@ -63,7 +63,7 @@ export class DownloadToField extends Component<Property>{
 
   private setToDefaultFilename(): void{
     this.setState({isValid: true})
-    this.props.onChange(`TwitterImageDLer/${DefaultFilename}`);
+    this.props.onChange(`Twitter/${DefaultFilename}`);
   }
 
   private get isValid(): boolean{
@@ -121,7 +121,7 @@ export class DownloadToField extends Component<Property>{
             <InformationText>{`${TagDay} : Current Date(${now.getDate()})`}</InformationText>
           </Paragraph>
           <Paragraph>
-            <InformationText>{`Default value is "TwitterImageDLer/${DefaultFilename}".`}</InformationText>
+            <InformationText>{`Default value is "Twitter/${DefaultFilename}".`}</InformationText>
             <InformationText><SetToDefaultButton onClick={()=>{this.setToDefaultFilename()}}/></InformationText>
           </Paragraph>
         </div>
