@@ -1,3 +1,4 @@
+import moment, { Moment } from 'moment'
 import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension } from "./Setting";
 import { TagYear, TagMonth, TagDay } from "./Setting";
 
@@ -76,7 +77,7 @@ export class ImageInfoImpl implements ImageInfo {
 	private tweetId: string;
 	private imageIndex: number;
 	private twimgUrl: TwimgUrl;
-	private dateTime: Date;
+	private dateTime: Moment;
 
 	public readonly filename: string;
 	public readonly downloadUrl: string;
@@ -89,7 +90,7 @@ export class ImageInfoImpl implements ImageInfo {
 		this.tweetId = tweetId;
 		this.imageIndex = imageIndex;
 		this.twimgUrl = new TwimgUrl(srcUrl);
-		this.dateTime = new Date();
+		this.dateTime = moment();
 
 		this.downloadUrl = this.twimgUrl.downloadUrl;
 		console.log(`downloadUrl : ${this.downloadUrl}`);
@@ -99,9 +100,9 @@ export class ImageInfoImpl implements ImageInfo {
 
 	createFileName(format: string): string{
 		let filename = format
-		filename = filename.replace(TagYear, String(this.dateTime.getFullYear()));
-		filename = filename.replace(TagMonth, String(this.dateTime.getMonth()+1));
-		filename = filename.replace(TagDay, String(this.dateTime.getDate()));
+		filename = filename.replace(TagYear, String(this.dateTime.format('YYYY')));
+		filename = filename.replace(TagMonth, String(this.dateTime.format('MM')));
+		filename = filename.replace(TagDay, String(this.dateTime.format('DD')));
 		filename = filename.replace(TagUserId, this.username);
 		filename = filename.replace(TagTweetId, this.tweetId);
 		filename = filename.replace(TagImageIndex, this.imageIndex.toString());
