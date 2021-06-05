@@ -5,7 +5,7 @@
   "applications": {
     "gecko": {
       "id": "twitterimagedownloader@koa.im",
-      "strict_min_version": "55.0",
+      "strict_min_version": "57.0",
       "update_url": "https://dist.koa.im/twitterimagedownloader.xpi"
     }
   },
