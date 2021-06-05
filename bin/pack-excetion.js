@@ -57,6 +57,8 @@ async function pack_xpi() {
   archive.append(JSON.stringify(manifest), { name: 'manifest.json' })
   archive.directory(dist_path, 'dist')
   archive.directory(image_path, 'images')
+
+  archive.finalize()
 }
 
 pack_xpi()
