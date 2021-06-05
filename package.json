@@ -1,22 +1,31 @@
 {
   "name": "twitterimagedownloader",
-  "version": "2.2.1",
-  "description": "Chrome Extension for download image in twitter",
-  "main": "index.js",
+  "version": "2.2.2",
+  "description": "Browser Extension for download image in twitter",
+  "applications": {
+    "gecko": {
+      "id": "twitterimagedownloader@koa.im",
+      "strict_min_version": "42a1",
+      "update_url": "https://dist.koa.im/twitterimagedownloader.xpi"
+    }
+  },
   "scripts": {
+    "all": "run-s pre-build build pack-firefox",
+    "prebuild": "node ./bin/sync-manifest.js",
     "build": "webpack",
+    "postbuild": "node ./bin/pack-excetion.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HassakuTb/TwitterImageDownloader2.git"
+    "url": "git+https://github.com/ncwhale/TwitterImageDownloader2.git"
   },
   "author": "hassakueng.com",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/HassakuTb/TwitterImageDownloader2/issues"
+    "url": "https://github.com/ncwhale/TwitterImageDownloader2/issues"
   },
-  "homepage": "https://github.com/HassakuTb/TwitterImageDownloader2#readme",
+  "homepage": "https://github.com/ncwhale/TwitterImageDownloader2#readme",
   "devDependencies": {
     "@types/chrome": "0.0.86",
     "@types/jquery": "^3.3.38",
@@ -32,6 +41,7 @@
   "dependencies": {
     "@types/react": "^16.9.36",
     "@types/react-dom": "^16.9.8",
+    "archiver": "^5.3.0",
     "jquery": "^3.5.1",
     "moment": "^2.29.1",
     "react": "^16.13.1",
