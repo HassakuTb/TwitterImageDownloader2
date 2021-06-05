@@ -10,8 +10,6 @@
     }
   },
   "scripts": {
-    "all": "run-s pre-build build pack-firefox",
-    "prebuild": "node ./bin/sync-manifest.js",
     "build": "webpack",
     "postbuild": "node ./bin/pack-excetion.js",
     "test": "echo \"Error: no test specified\" && exit 1"
