@@ -19,6 +19,9 @@ manifest['applications'] = {
   ...package.applications,
 }
 
+// Firefox did not support event background page yet.
+manifest['background']['persistent'] = true
+
 console.dir(manifest)
 
 function make_archive(output) {
