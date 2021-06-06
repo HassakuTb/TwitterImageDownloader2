@@ -1,6 +1,6 @@
 {
   "name": "twitterimagedownloader",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "Browser Extension for download image in twitter",
   "applications": {
     "gecko": {
@@ -12,6 +12,7 @@
   "scripts": {
     "build": "webpack",
     "postbuild": "node ./bin/pack-excetion.js",
+    "dev": "webpack --config webpack.dev.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
