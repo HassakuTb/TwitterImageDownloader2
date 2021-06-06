@@ -17,7 +17,7 @@ const Layout = styled.div`
   width: 800px;
 `;
 
-const defaultDirnameDownloadTo: string = 'TwitterImageDLer';
+const defaultDirnameDownloadTo: string = 'Twitter';
 const defaultEnableOpenSaveAs: boolean = false;
 
 interface OptionState{
