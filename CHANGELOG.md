@@ -1,4 +1,4 @@
-## 2.2.5 -2021-06-06
+## 2.2.4 -2021-06-06
 ### Added
 Add support for firefox extension.
 Add auto package scripts.
