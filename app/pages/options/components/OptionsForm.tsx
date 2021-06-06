@@ -6,6 +6,7 @@ import { Spinner } from './Spinner';
 import { DownloadToField } from './DownloadToField';
 import { EnableSaveAsField } from './EnableSaveAsField';
 import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension } from '../../../scripts/Setting';
+import { TagYear, TagMonth, TagDay } from '../../../scripts/Setting';
 
 const Layout = styled.div`
   display: flex;
@@ -13,10 +14,10 @@ const Layout = styled.div`
   justify-content: flex-start;
   align-items: flex-start;
 
-  width: 600px;
+  width: 800px;
 `;
 
-const defaultDirnameDownloadTo: string = 'TwitterImageDLer';
+const defaultDirnameDownloadTo: string = 'Twitter';
 const defaultEnableOpenSaveAs: boolean = false;
 
 interface OptionState{
@@ -92,6 +93,9 @@ export class OptionsForm extends Component<any, OptionState>{
     s = s.replace(TagImageIndex, "");
     s = s.replace(TagOriginal, "");
     s = s.replace(TagExtension, "");
+    s = s.replace(TagYear, "");
+    s = s.replace(TagMonth, "");
+    s = s.replace(TagDay, "");
     return !(s.includes("<") || s.includes(">"));
   }
 
