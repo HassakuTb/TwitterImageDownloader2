@@ -31,37 +31,36 @@ function downloadImage(image: ImageInfo): void {
 /**
  * create context menu
  */
-chrome.runtime.onInstalled.addListener(() => {
-	chrome.contextMenus.create({
-		type: 'normal',
-		id: 'downloadTwitterImage',
-		title: 'download original image',
-		contexts: [
-			'image','video'
-		],
-		documentUrlPatterns: [
-			'https://twitter.com/*'
-		],
-		targetUrlPatterns: [
-			'https://pbs.twimg.com/media/*',
-			'https://video.twimg.com/*',
-		],
-	});
-	chrome.contextMenus.create({
-		type: 'normal',
-		id: 'downloadTwitterImageLink',
-		title: 'download original image',
-		contexts: [
-			'image', 'video'
-		],
-		documentUrlPatterns: [
-			'https://tweetdeck.twitter.com/*'
-		],
-		targetUrlPatterns: [
-			'https://pbs.twimg.com/media/*',
-			'https://video.twimg.com/*',
-		],
-	});
+chrome.contextMenus.removeAll()
+chrome.contextMenus.create({
+	type: 'normal',
+	id: 'downloadTwitterImage',
+	title: 'download original image',
+	contexts: [
+		'image','video'
+	],
+	documentUrlPatterns: [
+		'https://twitter.com/*'
+	],
+	targetUrlPatterns: [
+		'https://pbs.twimg.com/media/*',
+		'https://video.twimg.com/*',
+	],
+});
+chrome.contextMenus.create({
+	type: 'normal',
+	id: 'downloadTwitterImageLink',
+	title: 'download original image',
+	contexts: [
+		'image', 'video'
+	],
+	documentUrlPatterns: [
+		'https://tweetdeck.twitter.com/*'
+	],
+	targetUrlPatterns: [
+		'https://pbs.twimg.com/media/*',
+		'https://video.twimg.com/*',
+	],
 });
 
 const sendMessage: (name: string, pageUrl: string, format: string, tabId?: number, srcUrl?: string) => void =

@@ -3,7 +3,7 @@ const path = require('path')
 const archiver = require('archiver')
 
 const project_root = path.join(__dirname, '..')
-const dist_path = path.join(project_root, 'dist')
+const dist_path = path.join(project_root, 'app', 'dist')
 const image_path = path.join(project_root, 'app', 'images')
 const output_path = path.join(project_root, 'release')
 
@@ -88,7 +88,7 @@ async function pack_source() {
   archive.file(path.join(project_root, 'LICENSE'), { name: 'LICENSE' })
   archive.file(path.join(project_root, 'tsconfig.json'), { name: 'tsconfig.json' })
   archive.file(path.join(project_root, 'webpack.config.js'), { name: 'webpack.config.js' })
-  archive.directory(path.join(project_root, 'app'), 'app')
+  archive.glob('app/**', { ignore: ['app/dist/**'] })
   archive.directory(path.join(project_root, 'bin'), 'bin')
 
   archive.finalize()
