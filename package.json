@@ -25,15 +25,15 @@
   },
   "homepage": "https://github.com/ncwhale/TwitterImageDownloader2#readme",
   "devDependencies": {
-    "@types/chrome": "0.0.86",
+    "@types/chrome": "^0.0.86",
     "@types/jquery": "^3.3.38",
     "@types/styled-components": "^5.1.0",
     "html-loader": "^1.1.0",
-    "html-webpack-plugin": "^4.3.0",
+    "html-webpack-plugin": "^5.5.0",
     "ts-loader": "^6.2.2",
     "typescript": "^3.9.5",
-    "webpack": "^4.43.0",
-    "webpack-cli": "^3.3.11"
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.9.1"
   },
   "private": true,
   "dependencies": {
