@@ -30,6 +30,7 @@ module.exports = {
   },
 
   plugins: [
+    new webpack.SourceMapDevToolPlugin({}),
     new HtmlWebpackPlugin({
       chunks: ["options"],
       filename: "options.html",

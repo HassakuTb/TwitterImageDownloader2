@@ -2,4 +2,8 @@ node_modules/
 /app/tsdists/
 /dist/
 /app/dist/
-tmp/
+/tmp/
+.nvmrc
+*.crx
+*.pem
+/release/
