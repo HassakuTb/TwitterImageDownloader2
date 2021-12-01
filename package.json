@@ -1,6 +1,6 @@
 {
   "name": "twitterimagedownloader",
-  "version": "2.1.1",
+  "version": "2.2.1",
   "description": "Chrome Extension for download image in twitter",
   "main": "index.js",
   "scripts": {
@@ -19,11 +19,22 @@
   "homepage": "https://github.com/HassakuTb/TwitterImageDownloader2#readme",
   "devDependencies": {
     "@types/chrome": "0.0.86",
-    "@types/jquery": "^3.3.30",
-    "ts-loader": "^6.0.4",
-    "typescript": "^3.5.3",
-    "webpack": "^4.36.1",
-    "webpack-cli": "^3.3.6"
+    "@types/jquery": "^3.3.38",
+    "@types/styled-components": "^5.1.0",
+    "html-loader": "^1.1.0",
+    "html-webpack-plugin": "^4.3.0",
+    "ts-loader": "^6.2.2",
+    "typescript": "^3.9.5",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@types/react": "^16.9.36",
+    "@types/react-dom": "^16.9.8",
+    "jquery": "^3.5.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "styled-components": "^5.1.1"
+  }
 }
