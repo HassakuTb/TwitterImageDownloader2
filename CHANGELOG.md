@@ -1,3 +1,12 @@
+## 2.2.4 -2021-06-06
+### Added
+Add support for firefox extension.
+Add auto package scripts.
+
+## 2.2.2 -2021-05-04
+### Added
+Add Datetime tags in filename format.
+
 ## 2.2.1 - 2021-01-25
 ### Added
 ファイル名に利用できるタグにオリジナルファイル名を追加
