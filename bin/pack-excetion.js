@@ -61,7 +61,7 @@ async function prepend_build_env() {
 
 async function pack_xpi() {
   const output = fs.createWriteStream(
-    path.join(output_path, 'twitterimagedownloader.xpi'),
+    path.join(output_path, `twitterimagedownloader-${package.version}.xpi`),
   )
 
   const archive = make_archive(output)
@@ -77,7 +77,7 @@ async function pack_xpi() {
 // Package source code for review.
 async function pack_source() {
   const output = fs.createWriteStream(
-    path.join(output_path, 'source.zip'),
+    path.join(output_path, `source-${package.version}.zip`),
   )
   const archive = make_archive(output)
 
