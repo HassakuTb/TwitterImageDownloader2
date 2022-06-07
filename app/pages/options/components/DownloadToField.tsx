@@ -7,8 +7,8 @@ import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, Defaul
 import { TagYear, TagMonth, TagDay } from '../../../scripts/Setting';
 import { SetToDefaultButton } from './SetToDefaultButton';
 
-const InvalidWithEmptyFilename = "Directory name or filename name can not set to an empty.";
-const InvalidWithParse = "Can not parse inputed filename.";
+const InvalidWithEmptyFilename = "The directory or file name cannot be blank.";
+const InvalidWithParse = "Could not parse the entered file name.";
 
 const Container = styled.div`
   box-sizing: border-box;
@@ -92,10 +92,10 @@ export class DownloadToField extends Component<Property>{
     let now = new Date();
     return(
       <Container>
-        <Label>Filename</Label>
+        <Label>File name</Label>
         <TextField
           value={this.props.value}
-          placeholder="input filename here"
+          placeholder="Enter file name"
           isValid={this.isValid}
           onChange={(v) =>{this.props.onChange(v)}}
           processPostChange={v => v.trim().replace('\\', '/').replace(/[#:,*?"|]/g, '_')}
@@ -106,22 +106,22 @@ export class DownloadToField extends Component<Property>{
         </ValidationBlock>
         <div>
           <Paragraph>
-            <InformationText>{`Input "/" to create directory.`}</InformationText>
-            <InformationText>{`e.g. "${TagUserId}/${TagTweetId}.${TagExtension}" makes directory for each users.`}</InformationText>
+            <InformationText>{`Use "/" (slashes) to create directories.`}</InformationText>
+            <InformationText>{`e.g. "${TagUserId}/${TagTweetId}.${TagExtension}" makes a directory for each user.`}</InformationText>
           </Paragraph>
           <Paragraph>
-            <InformationText>{`You can use following variables.`}</InformationText>
+            <InformationText>{`You can use the following variables:`}</InformationText>
             <InformationText>{`${TagUserId} : User ID`}</InformationText>
             <InformationText>{`${TagTweetId} : Tweet ID`}</InformationText>
             <InformationText>{`${TagImageIndex} : Index of image (0...3). If there is a single image, the number will be "0".`}</InformationText>
             <InformationText>{`${TagOriginal} : Original file name`}</InformationText>
-            <InformationText>{`${TagExtension} : File extension ("png" or "jpg").`}</InformationText>
-            <InformationText>{`${TagYear} : Current Year(${now.getFullYear()})`}</InformationText>
-            <InformationText>{`${TagMonth} : Current Month(${now.getMonth()+1})`}</InformationText>
-            <InformationText>{`${TagDay} : Current Date(${now.getDate()})`}</InformationText>
+            <InformationText>{`${TagExtension} : File extension ("png" or "jpg")`}</InformationText>
+            <InformationText>{`${TagYear} : Current year (${now.getFullYear()})`}</InformationText>
+            <InformationText>{`${TagMonth} : Current month (${now.getMonth()+1})`}</InformationText>
+            <InformationText>{`${TagDay} : Current day (${now.getDate()})`}</InformationText>
           </Paragraph>
           <Paragraph>
-            <InformationText>{`Default value is "Twitter/${DefaultFilename}".`}</InformationText>
+            <InformationText>{`The default value is "Twitter/${DefaultFilename}".`}</InformationText>
             <InformationText><SetToDefaultButton onClick={()=>{this.setToDefaultFilename()}}/></InformationText>
           </Paragraph>
         </div>

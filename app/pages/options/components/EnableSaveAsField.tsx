@@ -3,7 +3,7 @@ import { Component } from 'react';
 import styled from 'styled-components';
 import { AppColor } from '../Colors';
 
-const labelText: string = `Open "save as" window`;
+const labelText: string = `Show "Save As" dialogues`;
 
 const Container = styled.div<{}>`
   box-sizing: border-box;
