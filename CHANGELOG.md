@@ -1,3 +1,7 @@
+## 2.2.5 -2022-06-08
+### Changed
+Make text clearer.
+
 ## 2.2.4 -2021-06-06
 ### Added
 Add support for firefox extension.
