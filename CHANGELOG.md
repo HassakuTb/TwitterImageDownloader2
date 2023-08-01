@@ -1,3 +1,7 @@
+## 2.2.6 - 2023-08-01
+### Fixed
+Fixed an issue where images could not be downloaded from webp thumbnails.
+
 ## 2.2.5 -2022-06-08
 ### Changed
 Make text clearer.
