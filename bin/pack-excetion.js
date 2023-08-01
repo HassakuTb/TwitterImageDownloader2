@@ -3,26 +3,13 @@ const path = require('path')
 const archiver = require('archiver')
 
 const project_root = path.join(__dirname, '..')
+const app_path = path.join(project_root, 'app')
 const dist_path = path.join(project_root, 'app', 'dist')
 const image_path = path.join(project_root, 'app', 'images')
 const output_path = path.join(project_root, 'release')
 
 let manifest = require('../app/manifest.json')
 let package = require('../package.json')
-
-// Merge package.json to manifest
-manifest['version'] = package.version
-
-// Add applications field needed by firefox.
-manifest['applications'] = {
-  ...manifest.applications,
-  ...package.applications,
-}
-
-// Firefox did not support event background page yet.
-manifest['background']['persistent'] = true
-
-console.dir(manifest)
 
 function make_archive(output) {
   const archive = archiver('zip', {
@@ -60,6 +47,21 @@ async function prepend_build_env() {
 }
 
 async function pack_xpi() {
+
+  // Merge package.json to manifest
+  manifest['version'] = package.version
+  
+  // Add applications field needed by firefox.
+  manifest['applications'] = {
+    ...manifest.applications,
+    ...package.applications,
+  }
+  
+  // Firefox did not support event background page yet.
+  // manifest['background']['persistent'] = true
+  
+  console.dir(manifest)
+
   const output = fs.createWriteStream(
     path.join(output_path, `twitterimagedownloader-${package.version}.xpi`),
   )
@@ -68,6 +70,21 @@ async function pack_xpi() {
 
   // manifest.json
   archive.append(JSON.stringify(manifest), { name: 'manifest.json' })
+  archive.directory(dist_path, 'dist')
+  archive.directory(image_path, 'images')
+
+  archive.finalize()
+}
+
+async function pack_zip() {
+  const output = fs.createWriteStream(
+    path.join(output_path, `twitterimagedownloader-${package.version}.zip`),
+  )
+
+  const archive = make_archive(output)
+
+  // manifest.json
+  archive.file(path.join(app_path, 'manifest.json'), { name: 'manifest.json' })
   archive.directory(dist_path, 'dist')
   archive.directory(image_path, 'images')
 
@@ -97,3 +114,4 @@ async function pack_source() {
 prepend_build_env()
 pack_xpi()
 pack_source()
+pack_zip()

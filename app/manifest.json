@@ -21,7 +21,8 @@
       ],
       "js":[
         "dist/content.bundle.js"
-      ]
+      ],
+      "run_at":"document_start"
     }
   ],
   "options_ui" : {
