@@ -32,7 +32,7 @@ class TwimgUrl {
 		queryParams.split("&").forEach(x => {
 			if (x.lastIndexOf("format=", 0) === 0) {
 				const ext = x.slice("format=".length)
-				if (ext === "jpg" || ext === "jpeg") {
+				if (ext === "jpg" || ext === "jpeg" || ext === "webp") {
 					this.extension = 'jpg';
 				}
 				else {
@@ -58,7 +58,7 @@ class TwimgUrl {
 		this.path = split[0];
 		this.baseUrl = twimgBase + this.path;
 
-		if (extension === "jpg" || extension === "jpeg") {
+		if (extension === "jpg" || extension === "jpeg" || extension === "webp") {
 			this.extension = 'jpg';
 		}
 		else {
