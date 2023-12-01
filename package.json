@@ -2,11 +2,14 @@
   "name": "twitterimagedownloader",
   "version": "2.2.8",
   "description": "Browser Extension for download image in twitter",
-  "applications": {
+  "browser_specific_settings": {
     "gecko": {
       "id": "{905ac796-d4c9-4f71-a93c-1e5a1ed2050a}",
       "strict_min_version": "57.0"
     }
+  },
+  "firefox_background" : {
+    "scripts": ["dist/background.bundle.js"]
   },
   "scripts": {
     "build": "webpack",

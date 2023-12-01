@@ -51,14 +51,16 @@ async function pack_xpi() {
   // Merge package.json to manifest
   manifest['version'] = package.version
   
-  // Add applications field needed by firefox.
-  manifest['applications'] = {
-    ...manifest.applications,
-    ...package.applications,
+  // Add browser_specific_settings field needed by firefox.
+  manifest['browser_specific_settings'] = {
+    ...manifest.browser_specific_settings,
+    ...package.browser_specific_settings,
   }
-  
-  // Firefox did not support event background page yet.
-  // manifest['background']['persistent'] = true
+
+  //  Replace background field for firefox. 
+  manifest['background'] = {
+    ...package.firefox_background,
+  }
   
   console.dir(manifest)
 
