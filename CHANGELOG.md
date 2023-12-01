@@ -1,3 +1,11 @@
+## 2.2.8 - 2023-12-02
+### Added
+Add support for pro.twitter.com.
+
+## 2.2.7
+### Changed
+Apply manifest version 3.
+
 ## 2.2.6 - 2023-08-01
 ### Fixed
 Fixed an issue where images could not be downloaded from webp thumbnails.
