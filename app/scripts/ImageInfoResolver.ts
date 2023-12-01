@@ -8,7 +8,7 @@ interface ImageInfoResolver{
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>{
     console.log("TIL request: ");
     console.log(request);
-    if(request.name === 'twitterImageDL' || request.name === 'twitterImageDLLink'){
+    if(request.name === 'twitterImageDL'){
         const resolver : ImageInfoResolver = ResolverSelector.getResolver(request.srcUrl, request.pageUrl);
         const image : ImageInfo = resolver.resolveImageInfo(request.srcUrl, request.format);
         sendResponse(image);
@@ -20,10 +20,18 @@ class ResolverSelector{
     public static getResolver(srcUrl : string, pageUrl : string) : ImageInfoResolver{
         const targets : JQuery = $(`img[src*="${srcUrl}"]`);
 
-        if(pageUrl.lastIndexOf("https://twitter.com", 0) === 0 || pageUrl.lastIndexOf("https://pro.twitter.com", 0) === 0){
-            if(ResolverSelector.isPhotoUrl(pageUrl)){
+        let host: string | undefined = undefined;
+        if(pageUrl.lastIndexOf("https://twitter.com", 0) === 0){
+            host = "https://twitter.com";
+        }
+        else if(pageUrl.lastIndexOf("https://pro.twitter.com", 0) === 0){
+            host = "https://pro.twitter.com";
+        }
+
+        if(host !== undefined){
+            if(ResolverSelector.isPhotoUrl(pageUrl, host)){
                 console.log("TIL use resolver for new twitter image preview");
-                return new Resolever_TwitterNewPreview(pageUrl);
+                return new Resolever_TwitterNewPreview(pageUrl, host);
             }
             else if(targets.closest('article').length > 0){
                 console.log("TIL use resolver for new twitter");
@@ -40,54 +48,11 @@ class ResolverSelector{
         }
     }
 
-    public static getResolverForLink(srcUrl : string) : ImageInfoResolver{
-        const targets : JQuery = $(`img[src*="${srcUrl}"]`);
-        
-        console.log("TIL use resolver for tweetdeck");
-        return new Resolver_Deck_Media(targets);
-    }
-
-    private static isPhotoUrl(url : string) : boolean{
-        const path : string = url.slice("https://twitter.com".length);
+    private static isPhotoUrl(url : string, host: string) : boolean{
+        const path : string = url.slice(host.length);
 
         const linkSplit : string[] = path.split('/');
         return linkSplit.length === 6 && linkSplit[4] === 'photo';
-    }
-}
-
-/**
- * Resolver tweetdeck <img>
- */
-class Resolver_Deck_Media implements ImageInfoResolver{
-    
-    private targets : JQuery;
-
-    constructor(targets : JQuery){
-        this.targets = targets;
-    }
-
-    public resolveImageInfo(srcUrl : string, format: string) : ImageInfo{
-        const article: JQuery = this.targets.closest('article');
-        let tweetId : string | undefined = undefined;
-        let username : string | undefined = undefined;
-        if(article.length > 0){
-            tweetId = article.attr('data-tweet-id');
-            const userLink : string | undefined = article.find('a.account-link').attr('href');
-            if(userLink !== undefined) username = userLink!.slice('https://twitter.com/'.length);
-        }
-        else{
-            const modal = this.targets.closest('.js-modal-panel');
-            tweetId = modal.find('div[data-key]').attr('data-key');
-            const userLink : string | undefined = modal.find('a.account-link').attr('href');
-            if(userLink !== undefined) username = userLink!.slice('https://twitter.com/'.length);
-        }
-
-        if(username === undefined || tweetId === undefined){
-            return new ImageInfoUnresolve(srcUrl);
-        }
-        else{
-            return new ImageInfoImpl(username, tweetId, 1, srcUrl, format);
-        }
     }
 }
 
@@ -138,13 +103,15 @@ class Resolever_TwitterNew implements ImageInfoResolver{
 class Resolever_TwitterNewPreview implements ImageInfoResolver{
 
     private linkUrl : string;
+    private host : string;
 
-    constructor(linkUrl : string){
+    constructor(linkUrl : string, host : string){
         this.linkUrl = linkUrl;
+        this.host = host;
     }
 
     public resolveImageInfo(srcUrl : string, format: string) : ImageInfo{
-        const path : string = this.linkUrl.slice("https://twitter.com".length);
+        const path : string = this.linkUrl.slice(this.host.length);
 
         const linkSplit : string[] = path.split('/');
         if(linkSplit.length === 6 && linkSplit[4] === 'photo'){

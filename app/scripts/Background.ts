@@ -10,6 +10,8 @@ function doDownload(setting: Setting, image: ImageInfo){
 }
 
 function downloadImage(image: ImageInfo): void {
+	console.log("start download: ");
+	console.log(image);
 	chrome.storage.local.get((items) => {
 		let setting: Setting = (items.download_to === undefined || items.download_to === null) ?
 			CreateDefaultSetting() : (items as Setting);
@@ -40,20 +42,7 @@ chrome.contextMenus.create({
 		'image'
 	],
 	documentUrlPatterns: [
-		'https://twitter.com/*'
-	],
-	targetUrlPatterns: [
-		'https://pbs.twimg.com/media/*'
-	],
-});
-chrome.contextMenus.create({
-	type: 'normal',
-	id: 'downloadTwitterImageLink',
-	title: 'Download Original Image',
-	contexts: [
-		'image'
-	],
-	documentUrlPatterns: [
+		'https://twitter.com/*',
 		'https://pro.twitter.com/*'
 	],
 	targetUrlPatterns: [
@@ -88,9 +77,6 @@ chrome.contextMenus.onClicked.addListener((info: chrome.contextMenus.OnClickData
 	let name: string = 'twitterImageDL';
 	if (info.menuItemId === 'downloadTwitterImage') {
 		name = 'twitterImageDL';
-	}
-	else if (info.menuItemId === 'downloadTwitterImageLink') {
-		name = 'twitterImageDLLink';
 	}
 	chrome.storage.local.get((items: any) => {
 		let setting: Setting = (items.download_to === undefined || items.download_to === null) ?
