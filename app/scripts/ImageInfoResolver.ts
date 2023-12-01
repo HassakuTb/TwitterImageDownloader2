@@ -8,13 +8,8 @@ interface ImageInfoResolver{
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>{
     console.log("TIL request: ");
     console.log(request);
-    if(request.name === 'twitterImageDL'){
+    if(request.name === 'twitterImageDL' || request.name === 'twitterImageDLLink'){
         const resolver : ImageInfoResolver = ResolverSelector.getResolver(request.srcUrl, request.pageUrl);
-        const image : ImageInfo = resolver.resolveImageInfo(request.srcUrl, request.format);
-        sendResponse(image);
-    }
-    else if(request.name === 'twitterImageDLLink'){ //  if deck
-        const resolver : ImageInfoResolver = ResolverSelector.getResolverForLink(request.srcUrl);
         const image : ImageInfo = resolver.resolveImageInfo(request.srcUrl, request.format);
         sendResponse(image);
     }
@@ -25,7 +20,7 @@ class ResolverSelector{
     public static getResolver(srcUrl : string, pageUrl : string) : ImageInfoResolver{
         const targets : JQuery = $(`img[src*="${srcUrl}"]`);
 
-        if(pageUrl.lastIndexOf("https://twitter.com", 0) === 0){
+        if(pageUrl.lastIndexOf("https://twitter.com", 0) === 0 || pageUrl.lastIndexOf("https://pro.twitter.com", 0) === 0){
             if(ResolverSelector.isPhotoUrl(pageUrl)){
                 console.log("TIL use resolver for new twitter image preview");
                 return new Resolever_TwitterNewPreview(pageUrl);
