@@ -13,7 +13,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>{
         const image : ImageInfo = resolver.resolveImageInfo(request.srcUrl, request.format);
         sendResponse(image);
     }
-    else if(request.name === 'twitterImageDLLink'){
+    else if(request.name === 'twitterImageDLLink'){ //  if deck
         const resolver : ImageInfoResolver = ResolverSelector.getResolverForLink(request.srcUrl);
         const image : ImageInfo = resolver.resolveImageInfo(request.srcUrl, request.format);
         sendResponse(image);

@@ -1,6 +1,6 @@
 {
   "name": "twitterimagedownloader",
-  "version": "2.2.7",
+  "version": "2.2.8",
   "description": "Browser Extension for download image in twitter",
   "applications": {
     "gecko": {
@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ncwhale/TwitterImageDownloader2.git"
+    "url": "git+https://github.com/HassakuTb/TwitterImageDownloader2.git"
   },
   "author": "hassakueng.com",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ncwhale/TwitterImageDownloader2/issues"
+    "url": "https://github.com/HassakuTb/TwitterImageDownloader2/issues"
   },
-  "homepage": "https://github.com/ncwhale/TwitterImageDownloader2#readme",
+  "homepage": "https://github.com/HassakuTb/TwitterImageDownloader2#readme",
   "devDependencies": {
     "@types/chrome": "^0.0.86",
     "@types/jquery": "^3.3.38",

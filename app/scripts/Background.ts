@@ -54,7 +54,7 @@ chrome.contextMenus.create({
 		'image'
 	],
 	documentUrlPatterns: [
-		'https://tweetdeck.twitter.com/*'
+		'https://pro.twitter.com/*'
 	],
 	targetUrlPatterns: [
 		'https://pbs.twimg.com/media/*'
