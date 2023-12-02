@@ -120,9 +120,9 @@ export class DownloadToField extends Component<Property>{
             <InformationText>{`${TagYear} : Current year (${now.getFullYear()})`}</InformationText>
             <InformationText>{`${TagMonth} : Current month (${now.getMonth()+1})`}</InformationText>
             <InformationText>{`${TagDay} : Current day (${now.getDate()})`}</InformationText>
-            <InformationText>{`${TagPostYear} : Posted year (${now.getFullYear()})`}</InformationText>
-            <InformationText>{`${TagPostMonth} : Posted month (${now.getMonth()+1})`}</InformationText>
-            <InformationText>{`${TagPostDay} : Posted day (${now.getDate()})`}</InformationText>
+            <InformationText>{`${TagPostYear} : Posted year (yyyy)`}</InformationText>
+            <InformationText>{`${TagPostMonth} : Posted month (MM)`}</InformationText>
+            <InformationText>{`${TagPostDay} : Posted day (dd)`}</InformationText>
           </Paragraph>
           <Paragraph>
             <InformationText>{`The default value is "Twitter/${DefaultFilename}".`}</InformationText>
