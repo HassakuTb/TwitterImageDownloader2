@@ -7,6 +7,7 @@ import { DownloadToField } from './DownloadToField';
 import { EnableSaveAsField } from './EnableSaveAsField';
 import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension } from '../../../scripts/Setting';
 import { TagYear, TagMonth, TagDay } from '../../../scripts/Setting';
+import { TagPostYear, TagPostMonth, TagPostDay } from '../../../scripts/Setting';
 
 const Layout = styled.div`
   display: flex;
@@ -96,6 +97,9 @@ export class OptionsForm extends Component<any, OptionState>{
     s = s.replace(TagYear, "");
     s = s.replace(TagMonth, "");
     s = s.replace(TagDay, "");
+    s = s.replace(TagPostYear, "");
+    s = s.replace(TagPostMonth, "");
+    s = s.replace(TagPostDay, "");
     return !(s.includes("<") || s.includes(">"));
   }
 

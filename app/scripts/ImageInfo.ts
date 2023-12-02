@@ -1,6 +1,7 @@
 import moment, { Moment } from 'moment'
 import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension } from "./Setting";
 import { TagYear, TagMonth, TagDay } from "./Setting";
+import { TagPostYear, TagPostMonth, TagPostDay } from "./Setting";
 
 const twimgBase: string = 'https://pbs.twimg.com/media/';
 
@@ -78,11 +79,12 @@ export class ImageInfoImpl implements ImageInfo {
 	private imageIndex: number;
 	private twimgUrl: TwimgUrl;
 	private dateTime: Moment;
+	private postDate: Date | undefined;
 
 	public readonly filename: string;
 	public readonly downloadUrl: string;
 
-	constructor(username: string, tweetId: string, imageIndex: number, srcUrl: string, format: string) {
+	constructor(username: string, tweetId: string, imageIndex: number, srcUrl: string, format: string, postDate: Date | undefined) {
 		//  parse query parameter (twimg.com)
 		// console.log(srcUrl);
 
@@ -91,6 +93,7 @@ export class ImageInfoImpl implements ImageInfo {
 		this.imageIndex = imageIndex;
 		this.twimgUrl = new TwimgUrl(srcUrl);
 		this.dateTime = moment();
+		this.postDate = postDate;
 
 		this.downloadUrl = this.twimgUrl.downloadUrl;
 		console.log(`downloadUrl : ${this.downloadUrl}`);
@@ -108,6 +111,16 @@ export class ImageInfoImpl implements ImageInfo {
 		filename = filename.replace(TagImageIndex, this.imageIndex.toString());
 		filename = filename.replace(TagOriginal, this.twimgUrl.path)
 		filename = filename.replace(TagExtension, this.twimgUrl.extension);
+		if(this.postDate !== undefined){
+			filename = filename.replace(TagPostYear, this.postDate.getFullYear().toString());
+			filename = filename.replace(TagPostMonth, (this.postDate.getMonth() + 1).toString().padStart(2, '0'));
+			filename = filename.replace(TagPostDay, this.postDate.getDate().toString().padStart(2, '0'));
+		}
+		else{
+			filename = filename.replace(TagPostYear, '');
+			filename = filename.replace(TagPostMonth, '');
+			filename = filename.replace(TagPostDay, '');
+		}
 		return filename;
 	}
 }

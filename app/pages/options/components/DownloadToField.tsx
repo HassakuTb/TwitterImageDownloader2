@@ -5,6 +5,7 @@ import { AppColor } from '../Colors';
 import { TextField } from './TextField';
 import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, DefaultFilename } from '../../../scripts/Setting';
 import { TagYear, TagMonth, TagDay } from '../../../scripts/Setting';
+import { TagPostYear, TagPostMonth, TagPostDay } from '../../../scripts/Setting';
 import { SetToDefaultButton } from './SetToDefaultButton';
 
 const InvalidWithEmptyFilename = "The directory or file name cannot be blank.";
@@ -119,6 +120,9 @@ export class DownloadToField extends Component<Property>{
             <InformationText>{`${TagYear} : Current year (${now.getFullYear()})`}</InformationText>
             <InformationText>{`${TagMonth} : Current month (${now.getMonth()+1})`}</InformationText>
             <InformationText>{`${TagDay} : Current day (${now.getDate()})`}</InformationText>
+            <InformationText>{`${TagPostYear} : Posted year (${now.getFullYear()})`}</InformationText>
+            <InformationText>{`${TagPostMonth} : Posted month (${now.getMonth()+1})`}</InformationText>
+            <InformationText>{`${TagPostDay} : Posted day (${now.getDate()})`}</InformationText>
           </Paragraph>
           <Paragraph>
             <InformationText>{`The default value is "Twitter/${DefaultFilename}".`}</InformationText>

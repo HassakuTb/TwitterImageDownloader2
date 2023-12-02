@@ -1,6 +1,6 @@
 {
   "name": "twitterimagedownloader",
-  "version": "2.2.8",
+  "version": "2.2.9",
   "description": "Browser Extension for download image in twitter",
   "browser_specific_settings": {
     "gecko": {
