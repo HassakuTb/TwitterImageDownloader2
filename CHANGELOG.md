@@ -1,3 +1,7 @@
+## 2.2.10 - 2023-12-09
+### Added
+Support media tab for twitter.com.
+
 ## 2.2.9 - 2023-12-03
 ### Added
 Add PostDate tags in filename format.

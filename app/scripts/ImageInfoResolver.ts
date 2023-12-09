@@ -33,6 +33,10 @@ class ResolverSelector{
                 console.log("TIL use resolver for new twitter image preview");
                 return new Resolever_TwitterNewPreview(pageUrl, host, targets);
             }
+            else if(ResolverSelector.isMediaUrl(pageUrl, host)){
+                console.log("TIL use resolver for new twitter media tab");
+                return new Resolver_TwitterMedia(targets);
+            }
             else if(targets.closest('article').length > 0){
                 console.log("TIL use resolver for new twitter");
                 return new Resolever_TwitterNew(targets);
@@ -54,6 +58,13 @@ class ResolverSelector{
         const linkSplit : string[] = path.split('/');
         return linkSplit.length === 6 && linkSplit[4] === 'photo';
     }
+
+    private static isMediaUrl(url: string, host: string): boolean{
+        const path: string = url.slice(host.length);
+
+        const linkSplit: string[] = path.split('/');
+        return linkSplit.length === 3 && linkSplit[2] === 'media';
+    }
 }
 
 /**
@@ -62,6 +73,38 @@ class ResolverSelector{
 class Resolver_Unknown implements ImageInfoResolver{
     public resolveImageInfo(srcUrl : string) : ImageInfo{
         return new ImageInfoUnresolve(srcUrl);
+    }
+}
+
+/**
+ * Resolver ( /userid/media )
+ */
+class Resolver_TwitterMedia implements ImageInfoResolver{
+
+    private targets : JQuery;
+
+    constructor(targets : JQuery){
+        this.targets = targets;
+    }
+
+    public resolveImageInfo(srcUrl : string, format: string) : ImageInfo{
+        const targetImage : JQuery = this.targets.first();
+        const link : string | undefined = targetImage.closest('a').attr('href');
+        console.log("TIL target link : " + link);
+
+        if(link === undefined) return new ImageInfoUnresolve(srcUrl);
+
+        const linkSplit : string[] = link.split('/');
+        if(linkSplit.length === 6 && linkSplit[4] === 'photo'){
+            const username : string = linkSplit[1];
+            const tweetId : string = linkSplit[3];
+            const imageIndex : number = parseInt(linkSplit[5], 10) - 1;
+
+            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, undefined);
+        }
+        else{
+            return new ImageInfoUnresolve(srcUrl);
+        }
     }
 }
 
