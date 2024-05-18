@@ -5,7 +5,7 @@ import { SaveButton } from './SaveButton';
 import { Spinner } from './Spinner';
 import { DownloadToField } from './DownloadToField';
 import { EnableSaveAsField } from './EnableSaveAsField';
-import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension } from '../../../scripts/Setting';
+import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, TagUserName} from '../../../scripts/Setting';
 import { TagYear, TagMonth, TagDay } from '../../../scripts/Setting';
 import { TagPostYear, TagPostMonth, TagPostDay } from '../../../scripts/Setting';
 
@@ -90,6 +90,7 @@ export class OptionsForm extends Component<any, OptionState>{
   private isValidWithParse(newName: string){
     let s: string = newName;
     s = s.replace(TagUserId, "");
+    s = s.replace(TagUserName, "");
     s = s.replace(TagTweetId, "");
     s = s.replace(TagImageIndex, "");
     s = s.replace(TagOriginal, "");

@@ -1,5 +1,5 @@
 import moment, { Moment } from 'moment'
-import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension } from "./Setting";
+import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, TagUserName } from "./Setting";
 import { TagYear, TagMonth, TagDay } from "./Setting";
 import { TagPostYear, TagPostMonth, TagPostDay } from "./Setting";
 
@@ -80,11 +80,16 @@ export class ImageInfoImpl implements ImageInfo {
 	private twimgUrl: TwimgUrl;
 	private dateTime: Moment;
 	private postDate: Date | undefined;
+	private userDisplay: string;
 
 	public readonly filename: string;
 	public readonly downloadUrl: string;
 
-	constructor(username: string, tweetId: string, imageIndex: number, srcUrl: string, format: string, postDate: Date | undefined) {
+	private static removeUnsupportedChar(src: string): string{
+		return src.trim().replace(/\\[#:,*?"|]/g, '');
+	}
+
+	constructor(username: string, tweetId: string, imageIndex: number, srcUrl: string, format: string, postDate: Date | undefined, userDisplay: string | undefined) {
 		//  parse query parameter (twimg.com)
 		// console.log(srcUrl);
 
@@ -94,6 +99,7 @@ export class ImageInfoImpl implements ImageInfo {
 		this.twimgUrl = new TwimgUrl(srcUrl);
 		this.dateTime = moment();
 		this.postDate = postDate;
+		this.userDisplay = userDisplay === undefined ? username : ImageInfoImpl.removeUnsupportedChar(userDisplay);
 
 		this.downloadUrl = this.twimgUrl.downloadUrl;
 		console.log(`downloadUrl : ${this.downloadUrl}`);
@@ -107,6 +113,7 @@ export class ImageInfoImpl implements ImageInfo {
 		filename = filename.replace(TagMonth, String(this.dateTime.format('MM')));
 		filename = filename.replace(TagDay, String(this.dateTime.format('DD')));
 		filename = filename.replace(TagUserId, this.username);
+		filename = filename.replace(TagUserName, this.userDisplay);
 		filename = filename.replace(TagTweetId, this.tweetId);
 		filename = filename.replace(TagImageIndex, this.imageIndex.toString());
 		filename = filename.replace(TagOriginal, this.twimgUrl.path)

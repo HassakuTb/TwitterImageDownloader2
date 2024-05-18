@@ -7,6 +7,7 @@ export const TagPostYear: string = "<postyear>"
 export const TagPostMonth: string = "<postmonth>"
 export const TagPostDay: string = "<postday>"
 export const TagUserId: string = "<userid>";
+export const TagUserName: string = "<username>"
 export const TagTweetId: string = "<tweetid>";
 export const TagImageIndex: string = "<imageindex>";
 export const TagOriginal: string = "<original>"

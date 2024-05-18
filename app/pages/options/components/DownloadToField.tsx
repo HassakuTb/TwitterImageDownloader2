@@ -3,7 +3,7 @@ import { Component } from 'react';
 import styled from 'styled-components';
 import { AppColor } from '../Colors';
 import { TextField } from './TextField';
-import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, DefaultFilename } from '../../../scripts/Setting';
+import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, DefaultFilename, TagUserName } from '../../../scripts/Setting';
 import { TagYear, TagMonth, TagDay } from '../../../scripts/Setting';
 import { TagPostYear, TagPostMonth, TagPostDay } from '../../../scripts/Setting';
 import { SetToDefaultButton } from './SetToDefaultButton';
@@ -113,6 +113,7 @@ export class DownloadToField extends Component<Property>{
           <Paragraph>
             <InformationText>{`You can use the following variables:`}</InformationText>
             <InformationText>{`${TagUserId} : User ID`}</InformationText>
+            <InformationText>{`${TagUserName} : User name (experimental)`}</InformationText>
             <InformationText>{`${TagTweetId} : Tweet ID`}</InformationText>
             <InformationText>{`${TagImageIndex} : Index of image (0...3). If there is a single image, the number will be "0".`}</InformationText>
             <InformationText>{`${TagOriginal} : Original file name`}</InformationText>

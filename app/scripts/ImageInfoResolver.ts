@@ -21,19 +21,13 @@ class ResolverSelector{
         const targets : JQuery = $(`img[src*="${srcUrl}"]`);
 
         let host: string | undefined = undefined;
-        if(pageUrl.lastIndexOf("https://twitter.com", 0) === 0){
-            host = "https://twitter.com";
-        }
-        else if(pageUrl.lastIndexOf("https://pro.twitter.com", 0) === 0){
-            host = "https://pro.twitter.com";
-        }
-        else if(pageUrl.lastIndexOf("https://x.com", 0) === 0){
-            host = "https://x.com";
-        }
-        else if(pageUrl.lastIndexOf("https://pro.x.com", 0) === 0){
-            host = "https://pro.x.com";
-        }
-
+        ["https://twitter.com", "https://pro.twitter.com", "https://x.com", "https://pro.x.com"]
+        .forEach(target =>{
+            if(pageUrl.lastIndexOf(target, 0) === 0){
+                host = target;
+            }
+        })
+        
         if(host !== undefined){
             if(ResolverSelector.isPhotoUrl(pageUrl, host)){
                 console.log("TIL use resolver for new twitter image preview");
@@ -89,6 +83,13 @@ class Resolver_TwitterMedia implements ImageInfoResolver{
 
     private targets : JQuery;
 
+    private findUsername(): string | undefined {
+        if(this.targets.closest('main').length === 0) return undefined;
+        const name = this.targets.closest('main').find('[data-testid=UserName]').find('span').first().text();
+        console.log(`found username: ${name}`);
+        return name;
+    }
+
     constructor(targets : JQuery){
         this.targets = targets;
     }
@@ -106,7 +107,7 @@ class Resolver_TwitterMedia implements ImageInfoResolver{
             const tweetId : string = linkSplit[3];
             const imageIndex : number = parseInt(linkSplit[5], 10) - 1;
 
-            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, undefined);
+            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, undefined, this.findUsername());
         }
         else{
             return new ImageInfoUnresolve(srcUrl);
@@ -138,6 +139,13 @@ class Resolever_TwitterNew implements ImageInfoResolver{
         return undefined;
     }
 
+    private findUsername(): string | undefined {
+        if(this.targets.closest('article').length === 0) return undefined;
+        const name = this.targets.closest('article').find('[data-testid=User-Name]').find('span').first().text();
+        console.log(`found username: ${name}`);
+        return name;
+    }
+
     public resolveImageInfo(srcUrl : string, format: string) : ImageInfo{
         const targetImage : JQuery = this.targets.first();
         const link : string | undefined = targetImage.closest('a').attr('href');
@@ -151,7 +159,7 @@ class Resolever_TwitterNew implements ImageInfoResolver{
             const tweetId : string = linkSplit[3];
             const imageIndex : number = parseInt(linkSplit[5], 10) - 1;
 
-            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, this.findPostTime());
+            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, this.findPostTime(), this.findUsername());
         }
         else{
             return new ImageInfoUnresolve(srcUrl);
@@ -172,6 +180,19 @@ class Resolever_TwitterNewPreview implements ImageInfoResolver{
         this.linkUrl = linkUrl;
         this.host = host;
         this.targets = targets;
+    }
+
+    private findUsername(id: string): string | undefined {
+        const contents = this.targets.closest('body').find(`a[href="/${id}"]`);
+        var result: string | undefined = undefined;
+        contents.each((_, element) =>{
+            const content = element.textContent;
+            if(content !== null && content.length > 0 && !content.startsWith(`@${id}`)){
+                result = content;
+            }
+        });
+        console.log(`found username: ${result}`);
+        return result;
     }
 
     private findPostTime(): Date | undefined {
@@ -196,7 +217,7 @@ class Resolever_TwitterNewPreview implements ImageInfoResolver{
             const tweetId : string = linkSplit[3];
             const imageIndex : number = parseInt(linkSplit[5], 10) - 1;
 
-            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, this.findPostTime());
+            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, this.findPostTime(), this.findUsername(username));
         }
         else{
             return new ImageInfoUnresolve(srcUrl);
@@ -265,7 +286,7 @@ class Resolver_TwitterOld implements ImageInfoResolver{
             return new ImageInfoUnresolve(srcUrl);
         }
     
-        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, undefined);
+        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, undefined, undefined);
     }
     
     //  download from timeline of tweet detail
@@ -293,7 +314,7 @@ class Resolver_TwitterOld implements ImageInfoResolver{
             return new ImageInfoUnresolve(srcUrl);
         }
     
-        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, undefined);
+        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, undefined, undefined);
     }
     
     //  download from notification and quote
@@ -313,7 +334,7 @@ class Resolver_TwitterOld implements ImageInfoResolver{
             return new ImageInfoUnresolve(srcUrl);
         }
     
-        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, undefined);
+        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, undefined, undefined);
     }
     
     //  download from moment cover
@@ -334,6 +355,6 @@ class Resolver_TwitterOld implements ImageInfoResolver{
             return new ImageInfoUnresolve(srcUrl);
         }
     
-        return new ImageInfoImpl(username, tweetId, 1, srcUrl, format, undefined);
+        return new ImageInfoImpl(username, tweetId, 1, srcUrl, format, undefined, undefined);
     }
 }
