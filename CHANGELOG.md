@@ -1,3 +1,8 @@
+## 2.2.11 - 2024-05-18
+### Added
+Support x.com domain.
+Add UserName tags in filename format. (experimental)
+
 ## 2.2.10 - 2023-12-09
 ### Added
 Support media tab for twitter.com.
