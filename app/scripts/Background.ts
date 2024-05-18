@@ -43,7 +43,9 @@ chrome.contextMenus.create({
 	],
 	documentUrlPatterns: [
 		'https://twitter.com/*',
-		'https://pro.twitter.com/*'
+		'https://pro.twitter.com/*',
+		'https://x.com/*',
+		'https://pro.x.com/*'
 	],
 	targetUrlPatterns: [
 		'https://pbs.twimg.com/media/*'

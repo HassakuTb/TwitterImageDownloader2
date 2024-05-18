@@ -27,6 +27,12 @@ class ResolverSelector{
         else if(pageUrl.lastIndexOf("https://pro.twitter.com", 0) === 0){
             host = "https://pro.twitter.com";
         }
+        else if(pageUrl.lastIndexOf("https://x.com", 0) === 0){
+            host = "https://x.com";
+        }
+        else if(pageUrl.lastIndexOf("https://pro.x.com", 0) === 0){
+            host = "https://pro.x.com";
+        }
 
         if(host !== undefined){
             if(ResolverSelector.isPhotoUrl(pageUrl, host)){
