@@ -1,3 +1,7 @@
+## 2.2.12 - 2024-05-18
+### Fixed
+Remove "/" in user name.
+
 ## 2.2.11 - 2024-05-18
 ### Added
 Support x.com domain.

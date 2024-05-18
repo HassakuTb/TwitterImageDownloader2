@@ -86,7 +86,7 @@ export class ImageInfoImpl implements ImageInfo {
 	public readonly downloadUrl: string;
 
 	private static removeUnsupportedChar(src: string): string{
-		return src.trim().replace(/\\[#:,*?"|]/g, '');
+		return src.trim().replace(/[\\\/#:,*?"|]/g, '');
 	}
 
 	constructor(username: string, tweetId: string, imageIndex: number, srcUrl: string, format: string, postDate: Date | undefined, userDisplay: string | undefined) {
