@@ -20,33 +20,34 @@ class ResolverSelector{
     public static getResolver(srcUrl : string, pageUrl : string) : ImageInfoResolver{
         const targets : JQuery = $(`img[src*="${srcUrl}"]`);
 
-        let host: string | undefined = undefined;
-        if(pageUrl.lastIndexOf("https://twitter.com", 0) === 0){
-            host = "https://twitter.com";
-        }
-        else if(pageUrl.lastIndexOf("https://pro.twitter.com", 0) === 0){
-            host = "https://pro.twitter.com";
-        }
+        const supportedHosts = ["https://twitter.com", "https://pro.twitter.com", "https://x.com"];
 
-        if(host !== undefined){
-            if(ResolverSelector.isPhotoUrl(pageUrl, host)){
+        let host: string | undefined = undefined;
+        supportedHosts.forEach(supportedHost => {
+            if (pageUrl.startsWith(supportedHost)) {
+                host = supportedHost;
+            }
+        })
+        
+        if (host !== undefined){
+            if (ResolverSelector.isPhotoUrl(pageUrl, host)){
                 console.log("TIL use resolver for new twitter image preview");
                 return new Resolever_TwitterNewPreview(pageUrl, host, targets);
             }
-            else if(ResolverSelector.isMediaUrl(pageUrl, host)){
+            else if (ResolverSelector.isMediaUrl(pageUrl, host)){
                 console.log("TIL use resolver for new twitter media tab");
                 return new Resolver_TwitterMedia(targets);
             }
-            else if(targets.closest('article').length > 0){
+            else if (targets.closest('article').length > 0){
                 console.log("TIL use resolver for new twitter");
                 return new Resolever_TwitterNew(targets);
             }
-            else{
+            else {
                 console.log("TIL use resolver for old twitter");
                 return new Resolver_TwitterOld(targets);
             }
         }
-        else{
+        else {
             console.log("TIL use resolver for unknown");
             return new Resolver_Unknown();
         }
