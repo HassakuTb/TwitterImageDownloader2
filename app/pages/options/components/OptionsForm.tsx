@@ -99,6 +99,7 @@ export class OptionsForm extends Component<any, OptionState>{
     s = s.replace(TagMonth, "");
     s = s.replace(TagDay, "");
     s = s.replace(TagHour, "");
+    s = s.replace(TagMin, "");
     s = s.replace(TagSec, "");
     s = s.replace(TagPostYear, "");
     s = s.replace(TagPostMonth, "");
