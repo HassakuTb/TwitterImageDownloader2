@@ -1,3 +1,7 @@
+## 2.2.13 - 2024-06-23
+### Added
+Support time of day in filename format.
+
 ## 2.2.12 - 2024-05-18
 ### Fixed
 Remove "/" in user name.
