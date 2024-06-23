@@ -6,8 +6,8 @@ import { Spinner } from './Spinner';
 import { DownloadToField } from './DownloadToField';
 import { EnableSaveAsField } from './EnableSaveAsField';
 import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, TagUserName} from '../../../scripts/Setting';
-import { TagYear, TagMonth, TagDay } from '../../../scripts/Setting';
-import { TagPostYear, TagPostMonth, TagPostDay } from '../../../scripts/Setting';
+import { TagYear, TagMonth, TagDay, TagHour, TagMin, TagSec } from '../../../scripts/Setting';
+import { TagPostYear, TagPostMonth, TagPostDay, TagPostHour, TagPostMin, TagPostSec } from '../../../scripts/Setting';
 
 const Layout = styled.div`
   display: flex;
@@ -98,9 +98,14 @@ export class OptionsForm extends Component<any, OptionState>{
     s = s.replace(TagYear, "");
     s = s.replace(TagMonth, "");
     s = s.replace(TagDay, "");
+    s = s.replace(TagHour, "");
+    s = s.replace(TagSec, "");
     s = s.replace(TagPostYear, "");
     s = s.replace(TagPostMonth, "");
     s = s.replace(TagPostDay, "");
+    s = s.replace(TagPostHour, "");
+    s = s.replace(TagPostMin, "");
+    s = s.replace(TagPostSec, "");
     return !(s.includes("<") || s.includes(">"));
   }
 

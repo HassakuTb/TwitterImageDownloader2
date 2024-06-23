@@ -1,7 +1,7 @@
 import moment, { Moment } from 'moment'
 import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, TagUserName } from "./Setting";
-import { TagYear, TagMonth, TagDay } from "./Setting";
-import { TagPostYear, TagPostMonth, TagPostDay } from "./Setting";
+import { TagYear, TagMonth, TagDay, TagHour, TagMin, TagSec } from "./Setting";
+import { TagPostYear, TagPostMonth, TagPostDay, TagPostHour, TagPostMin, TagPostSec } from "./Setting";
 
 const twimgBase: string = 'https://pbs.twimg.com/media/';
 
@@ -112,6 +112,9 @@ export class ImageInfoImpl implements ImageInfo {
 		filename = filename.replace(TagYear, String(this.dateTime.format('YYYY')));
 		filename = filename.replace(TagMonth, String(this.dateTime.format('MM')));
 		filename = filename.replace(TagDay, String(this.dateTime.format('DD')));
+		filename = filename.replace(TagHour, String(this.dateTime.format('HH')));
+		filename = filename.replace(TagMin, String(this.dateTime.format('mm')));
+		filename = filename.replace(TagSec, String(this.dateTime.format('ss')));
 		filename = filename.replace(TagUserId, this.username);
 		filename = filename.replace(TagUserName, this.userDisplay);
 		filename = filename.replace(TagTweetId, this.tweetId);
@@ -122,11 +125,17 @@ export class ImageInfoImpl implements ImageInfo {
 			filename = filename.replace(TagPostYear, this.postDate.getFullYear().toString());
 			filename = filename.replace(TagPostMonth, (this.postDate.getMonth() + 1).toString().padStart(2, '0'));
 			filename = filename.replace(TagPostDay, this.postDate.getDate().toString().padStart(2, '0'));
+			filename = filename.replace(TagPostHour, this.postDate.getHours().toString().padStart(2, '0'));
+			filename = filename.replace(TagPostMin, this.postDate.getMinutes().toString().padStart(2, '0'));
+			filename = filename.replace(TagPostSec, this.postDate.getSeconds().toString().padStart(2, '0'));
 		}
 		else{
 			filename = filename.replace(TagPostYear, '');
 			filename = filename.replace(TagPostMonth, '');
 			filename = filename.replace(TagPostDay, '');
+			filename = filename.replace(TagPostHour, '');
+			filename = filename.replace(TagPostMin, '');
+			filename = filename.replace(TagPostSec, '');
 		}
 		return filename;
 	}
