@@ -5,6 +5,41 @@ interface ImageInfoResolver{
     resolveImageInfo(srcUrl : string, format: string) : ImageInfo;
 }
 
+// Use the native browser context menu
+// Bypass Twitter's context menu handler
+document.addEventListener(
+    "contextmenu",
+    (event: MouseEvent) => {
+        const x = event.clientX;
+        const y = event.clientY;
+
+        const images = document.querySelectorAll<HTMLImageElement>("img");
+
+        let imageFound = false;
+
+        for (let i = 0; i < images.length; i++) {
+            const image = images[i];
+            const rect = image.getBoundingClientRect();
+
+            if (
+                image.src.includes("pbs.twimg.com/media/") &&
+                x >= rect.left &&
+                x <= rect.right &&
+                y >= rect.top &&
+                y <= rect.bottom
+            ) {
+                imageFound = true;
+                break;
+            }
+        }
+
+        if (imageFound) {
+            event.stopImmediatePropagation();
+        }
+    },
+    true
+);
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>{
     console.log("TIL request: ");
     console.log(request);
