@@ -43,5 +43,8 @@ Google の Chrome DevTools MCP（`chrome-devtools-mcp`）を `--autoConnect` で
 - `javascript_tool` は 45 秒で応答待ちが打ち切られます。ただし、ページ内の処理は止まらずに最後まで動きます。結果を `window` に置いておけば、次の呼び出しで読めます（2026-11-17）。
 - `history.pushState` のあとに `popstate` を発火させると、ページを再読み込みせずに x.com の画面を切り替えられます。`window` に置いた変数が残るので、何画面も続けて調べるときに便利です（2026-11-17）。
 - ブラウザ標準のコンテキストメニューは、スクリーンショットに映りません。ページ内に描画されるメニュー（X 独自のメニューなど）は映ります（2026-11-17）。
+- `read_network_requests` は、ページを読み込み直した直後の要求を取りこぼすことがあります。読み込み中に「pending」として見えた要求が、読み込みが終わると一覧から消えていました。`history.pushState` と `popstate` で画面を切り替えたときの要求は記録されました（2026-11-17）。
+- 応答の中身を調べたいときは、`javascript_tool` でページの `XMLHttpRequest.prototype.open` / `send` と `window.fetch` を差し替えて記録し、そのあと画面を切り替えると確実です。x.com では、読み込み後に差し替えても XHR を拾えました（[tweet-data.md](../x-client/tweet-data.md)、2026-11-17）。
+- `javascript_tool` のコードは、ページの JavaScript の世界で動きます。React が DOM 要素に付けた `__reactFiber$…` なども読めます。拡張の content script（isolated world）とは見え方が違うので注意してください（2026-11-17）。
 - 拡張機能の管理画面（`chrome://extensions`）とシークレットウィンドウを操作できるかは試していません。2026-11-17 は、自作の拡張機能の読み込みと、右クリックしてメニューから選ぶ確認を人が行いました。
 - 調査が終わったら、作業用に開いたタブを閉じます。

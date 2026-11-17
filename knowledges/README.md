@@ -22,12 +22,19 @@ X（旧 Twitter）の Web クライアント、画像配信、ブラウザ拡張
 - [context-menu.md](x-client/context-menu.md) — 画像を右クリックしたときの X 独自メニュー（旧・新クライアント）と、標準のメニューを出す方法
 - [display-name.md](x-client/display-name.md) — 表示名の取り方と絵文字の扱い
 - [logged-out-access.md](x-client/logged-out-access.md) — ログアウト状態で見られるページ
+- [tweet-data.md](x-client/tweet-data.md) — ページがツイートのデータ（動画の URL を含む）を得ている場所（旧クライアントの XHR、React の props、x-web の SSR への埋め込み）
 
 ### media/ — 画像とツイートのメタデータ
 
 - [pbs-twimg-orig.md](media/pbs-twimg-orig.md) — `pbs.twimg.com` の原寸画像 URL と format の挙動
 - [snowflake.md](media/snowflake.md) — Tweet ID から投稿日時を計算する方法
 - [syndication-api.md](media/syndication-api.md) — `cdn.syndication.twimg.com/tweet-result` の仕様と制約
+- [video-twimg.md](media/video-twimg.md) — 動画と GIF の配信（`video.twimg.com` の URL の形、画質、HLS、GIF の実体が mp4 であること、poster の形）
+
+### extension/ — ブラウザ拡張の API とブラウザのバージョン
+
+- [main-world.md](extension/main-world.md) — ページの JavaScript の世界（MAIN world）で content script を動かす方法と対応バージョン
+- [browser-version-share.md](extension/browser-version-share.md) — Chrome と Firefox のバージョン別シェア
 
 ### dev/ — 調査の手段
 

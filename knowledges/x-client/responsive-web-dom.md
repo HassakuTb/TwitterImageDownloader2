@@ -22,7 +22,22 @@
 
 ### `/photo/N` リンクのない画像（2026-11-17 確認）
 
-`@NASA` のタイムラインで、`[data-testid=previewInterstitial]` の中の `pbs.twimg.com/media` の `img`（`HXRLj6bW0AAxO8n`）は、`<a>` に包まれていませんでした。`article` 内に `/photo/N` リンクもありません。動画などのプレビューと見られます（中身は未確認）。`/media/` の画像がすべて写真とは限りません。
+`@NASA` のタイムラインで、`[data-testid=previewInterstitial]` の中の `pbs.twimg.com/media` の `img`（`HXRLj6bW0AAxO8n`）は、`<a>` に包まれていませんでした。`article` 内に `/photo/N` リンクもありません。`/media/` の画像がすべて写真とは限りません。
+
+2026-11-17 追記: この `img` は、動画（`/NASA/status/2122404409292337592`）の poster でした。下の「動画（再生前）」を参照してください。
+
+## 動画（再生前）（2026-11-17 確認）
+
+`/NASA/status/2122404409292337592` のツイート詳細を開いた直後（再生前）の DOM です。
+
+- `<video>` 要素は 0 件でした。
+- poster の `img` の祖先は `IMG < DIV < DIV < DIV[data-testid=previewInterstitial] < DIV < DIV < DIV < DIV[data-testid=tweetPhoto] < …` でした。画像と同じ `tweetPhoto` の中にあります。
+- `img` の src は `https://pbs.twimg.com/media/HXRLj6bW0AAxO8n?…` で、画像と同じ形です。
+- `article` 内の `data-testid` には `playButton` がありました。
+- `/video/N` のリンクも `/photo/N` のリンクもありません。ツイート ID は、`article` 内の `/status/<id>` のリンクから取れます。
+- mp4 の URL は DOM のどこにもありません。React の props とネットワークの応答にあります（[tweet-data.md](tweet-data.md)）。
+
+再生中の DOM（`<video>` の src など）と、GIF の DOM はまだ確認していません。
 
 ### 引用ツイート（2026-11-17 確認）
 
