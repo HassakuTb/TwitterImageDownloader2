@@ -25,8 +25,10 @@ export const DefaultFilename: string = `${TagYear}-${TagMonth}/${TagUserId}-${Ta
 export const DefaultShiftNativeMenu: boolean = true;
 /** Right click on an image always opens the browser's context menu instead of X's own menu */
 export const DefaultOverrideContextMenu: boolean = false;
-/** Download videos and GIFs (beta). Off by default. */
+/** Download videos and GIFs, and all media in a post (beta). Off by default. */
 export const DefaultVideoBeta: boolean = false;
+/** "Download All Media in Post" (beta) also saves videos and GIFs. On by default. */
+export const DefaultBulkIncludeVideo: boolean = true;
 
 /**
  * storage.local key written by the background when the browser cannot run the page-world
@@ -41,6 +43,7 @@ export const CreateDefaultSetting: () => Setting = () => {
 		shift_native_menu: DefaultShiftNativeMenu,
 		override_context_menu: DefaultOverrideContextMenu,
 		video_beta: DefaultVideoBeta,
+		bulk_include_video: DefaultBulkIncludeVideo,
 		data_version: LatestDataVersion,
 	}
 };
@@ -70,6 +73,8 @@ export interface Setting {
 	override_context_menu?: boolean;
 	/** added after data_version 2; undefined means the default (off) */
 	video_beta?: boolean;
+	/** added after data_version 2; undefined means the default (on) */
+	bulk_include_video?: boolean;
 	data_version?: number;
 }
 
@@ -87,4 +92,20 @@ export const ReadContextMenuSetting: (setting: Setting) => ContextMenuSetting = 
 
 export const ReadVideoBeta: (setting: Setting) => boolean = (setting: Setting) =>{
 	return typeof setting.video_beta === 'boolean' ? setting.video_beta : DefaultVideoBeta;
+}
+
+export const ReadBulkIncludeVideo: (setting: Setting) => boolean = (setting: Setting) =>{
+	return typeof setting.bulk_include_video === 'boolean' ? setting.bulk_include_video : DefaultBulkIncludeVideo;
+}
+
+/**
+ * "Download All Media in Post" (beta): the files of a post must not share a name, so when the format
+ * has neither <imageindex> nor <original>, "-<imageindex>" is put before ".<ext>" (or at the end).
+ */
+export const BulkFilenameFormat: (format: string) => string = (format: string) =>{
+	if (format.indexOf(TagImageIndex) >= 0 || format.indexOf(TagOriginal) >= 0) return format;
+	const ext = `.${TagExtension}`;
+	const at = format.lastIndexOf(ext);
+	if (at < 0) return `${format}-${TagImageIndex}`;
+	return `${format.slice(0, at)}-${TagImageIndex}${format.slice(at)}`;
 }

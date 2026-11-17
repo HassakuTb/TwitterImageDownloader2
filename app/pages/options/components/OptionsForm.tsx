@@ -8,7 +8,7 @@ import { EnableSaveAsField } from './EnableSaveAsField';
 import { ContextMenuFields } from './ContextMenuFields';
 import { VideoBetaField } from './VideoBetaField';
 import { AppColor } from '../Colors';
-import { ReadContextMenuSetting, DefaultShiftNativeMenu, DefaultOverrideContextMenu, DefaultVideoBeta, VideoBetaUnsupportedKey } from '../../../scripts/Setting';
+import { ReadContextMenuSetting, DefaultShiftNativeMenu, DefaultOverrideContextMenu, DefaultVideoBeta, VideoBetaUnsupportedKey, DefaultBulkIncludeVideo, ReadBulkIncludeVideo } from '../../../scripts/Setting';
 import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, TagUserName} from '../../../scripts/Setting';
 import { TagYear, TagMonth, TagDay, TagHour, TagMin, TagSec } from '../../../scripts/Setting';
 import { TagPostYear, TagPostMonth, TagPostDay, TagPostHour, TagPostMin, TagPostSec } from '../../../scripts/Setting';
@@ -47,6 +47,7 @@ interface OptionState{
   overrideContextMenu: boolean;
   videoBeta: boolean;
   videoBetaUnsupported: boolean;
+  bulkIncludeVideo: boolean;
   isValidWithEmptyFilename: boolean;
   isValidWithParse: boolean;
 }
@@ -63,6 +64,7 @@ export class OptionsForm extends Component<any, OptionState>{
       ...ReadContextMenuSetting({}),
       videoBeta: DefaultVideoBeta,
       videoBetaUnsupported: false,
+      bulkIncludeVideo: DefaultBulkIncludeVideo,
       isValidWithEmptyFilename: false,
       isValidWithParse: false,
     }
@@ -77,6 +79,7 @@ export class OptionsForm extends Component<any, OptionState>{
       shift_native_menu: this.state.shiftNativeMenu,
       override_context_menu: this.state.overrideContextMenu,
       video_beta: this.state.videoBeta && !this.state.videoBetaUnsupported,
+      bulk_include_video: this.state.bulkIncludeVideo,
       data_version: 2,
     }, () =>{
       this.setState({
@@ -94,6 +97,7 @@ export class OptionsForm extends Component<any, OptionState>{
       shift_native_menu : DefaultShiftNativeMenu,
       override_context_menu : DefaultOverrideContextMenu,
       video_beta : DefaultVideoBeta,
+      bulk_include_video : DefaultBulkIncludeVideo,
       [VideoBetaUnsupportedKey] : null,
       data_version : 1,
     }, (items: any) => {
@@ -114,6 +118,7 @@ export class OptionsForm extends Component<any, OptionState>{
         overrideContextMenu: menuSetting.overrideContextMenu,
         videoBeta: items.video_beta === true,
         videoBetaUnsupported: typeof items[VideoBetaUnsupportedKey] === 'string',
+        bulkIncludeVideo: ReadBulkIncludeVideo(items as Setting),
         isValidWithEmptyFilename: this.isValidWithEmptyFilename(setting.download_to!),
         isValidWithParse: this.isValidWithParse(setting.download_to!),
       });
@@ -176,7 +181,9 @@ export class OptionsForm extends Component<any, OptionState>{
           <VideoBetaField
             isOn={this.state.videoBeta}
             isUnsupported={this.state.videoBetaUnsupported}
-            onClick={() => this.setState({videoBeta: !this.state.videoBeta})} />
+            onClick={() => this.setState({videoBeta: !this.state.videoBeta})}
+            bulkIncludeVideo={this.state.bulkIncludeVideo}
+            onClickBulkIncludeVideo={() => this.setState({bulkIncludeVideo: !this.state.bulkIncludeVideo})} />
           <DownloadToField
             isValidWithEmptyFilename={this.state.isValidWithEmptyFilename}
             isValidWithParse={this.state.isValidWithParse}

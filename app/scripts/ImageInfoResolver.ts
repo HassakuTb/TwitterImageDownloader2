@@ -4,6 +4,7 @@ import { ContextMenuSetting, ReadContextMenuSetting, ReadVideoBeta, Setting } fr
 import { findVideoKeys, looksLikeVideo, resolvePosterPlace, resolveVideo } from "./VideoResolver";
 import { showToast } from "./Toast";
 import { passThroughPlayer, restorePlayer } from "./PlayerPassThrough";
+import { isInPost, resolvePost } from "./TweetResolver";
 
 /**
  * event.target of the last contextmenu event.
@@ -33,10 +34,14 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName === 'local') {
         loadMenuSetting();
         lastVideoMenuVisible = undefined;
+        lastBulkMenuVisible = undefined;
     }
 });
 // the background rebuilds the menu (visible again) when the setting changes; resend on the next pointerover
-document.addEventListener('visibilitychange', () => { lastVideoMenuVisible = undefined; });
+document.addEventListener('visibilitychange', () => {
+    lastVideoMenuVisible = undefined;
+    lastBulkMenuVisible = undefined;
+});
 
 function useBrowserMenu(event: MouseEvent): boolean {
     return menuSetting.overrideContextMenu || (menuSetting.shiftNativeMenu && event.shiftKey);
@@ -69,20 +74,39 @@ function videoMenuVisibleFor(target: Element): boolean {
     return !isTwitterImage(target);
 }
 
-window.addEventListener('pointerover', (event: PointerEvent) => {
-    if (!videoBeta || !(event.target instanceof Element)) return;
-    // the pointer came from outside this window (another tab / window may have switched the menu)
-    if (event.relatedTarget === null) lastVideoMenuVisible = undefined;
-    const visible = videoMenuVisibleFor(event.target);
-    if (visible === lastVideoMenuVisible) return;
-    lastVideoMenuVisible = visible;
+/**
+ * download all media in a post (beta): the item is in the page / selection context (text or blank area),
+ * where no other item of this extension appears, so "visible: false" can hide it outside posts.
+ */
+let lastBulkMenuVisible: boolean | undefined = undefined;
+
+function sendToBackground(message: any): void {
     try {
-        chrome.runtime.sendMessage({ name: 'twitterImageDL:videoMenu', visible }, () => {
+        chrome.runtime.sendMessage(message, () => {
             if (chrome.runtime.lastError) { /* the background may be restarting; the next change resends */ }
         });
     }
     catch (e) {
         // the extension was reloaded; this content script is orphaned
+    }
+}
+
+window.addEventListener('pointerover', (event: PointerEvent) => {
+    if (!videoBeta || !(event.target instanceof Element)) return;
+    // the pointer came from outside this window (another tab / window may have switched the menu)
+    if (event.relatedTarget === null) {
+        lastVideoMenuVisible = undefined;
+        lastBulkMenuVisible = undefined;
+    }
+    const visible = videoMenuVisibleFor(event.target);
+    if (visible !== lastVideoMenuVisible) {
+        lastVideoMenuVisible = visible;
+        sendToBackground({ name: 'twitterImageDL:videoMenu', visible });
+    }
+    const bulkVisible = isInPost(event.target, location.href);
+    if (bulkVisible !== lastBulkMenuVisible) {
+        lastBulkMenuVisible = bulkVisible;
+        sendToBackground({ name: 'twitterImageDL:bulkMenu', visible: bulkVisible });
     }
 }, true);
 
@@ -138,6 +162,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log("TIL resolved video: ");
         console.log(video);
         sendResponse(video);
+    }
+    else if (request.name === 'twitterBulkDL') {
+        // download all media in a post (beta): ResolvedPost or PostResolveFailure
+        const post = resolvePost(lastTarget, document, location.href, request.includeVideo !== false);
+        console.log("TIL resolved post: ");
+        console.log(post);
+        sendResponse(post);
     }
     else if (request.name === 'twitterImageDL:toast' && typeof request.message === 'string') {
         // a failure of video download (beta), sent by the background

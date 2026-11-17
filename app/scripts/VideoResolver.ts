@@ -8,7 +8,7 @@
  *
  * No dependency on chrome api.
  */
-import { FindVideoRequest, FindVideoResponse, findVideoEvent, targetAttribute, videoFoundEvent } from "./PageProtocol";
+import { FindVideoRequest, FindVideoResponse, exchange, findVideoEvent, newRequestId, videoFoundEvent } from "./PageProtocol";
 import { VideoKeys, VideoMedia, bestMp4, gifKeyOf, isVideoOnlyPoster, mp4NameOf, numericIdOf, parseMediaPath, posterKeyOf } from "./VideoMedia";
 import { resolveDisplayName, snowflakeToTime } from "./ResolveCore";
 
@@ -134,39 +134,19 @@ function hasKeys(keys: VideoKeys): boolean {
 	return keys.posterKeys.length > 0 || keys.numericIds.length > 0 || keys.mp4Urls.length > 0;
 }
 
-let requestCount: number = 0;
-
 /**
  * Ask the page-world script. null: it answered "not found"; undefined: no answer (not installed).
  */
 export function askPageWorld(doc: Document, target: Element | undefined, keys: VideoKeys): VideoMedia | null | undefined {
-	const requestId = `r${Date.now().toString(36)}${(requestCount++).toString(36)}`;
-	let answer: VideoMedia | null | undefined = undefined;
-	const listener = (event: Event) => {
-		try {
-			const response: FindVideoResponse = JSON.parse(String((event as CustomEvent).detail));
-			if (response.requestId !== requestId) return;
-			answer = response.media;
-			console.log(`TIL video found by the page world: ${response.source}`);
-		}
-		catch (e) { /* not ours */ }
-	};
-
-	if (target !== undefined) target.setAttribute(targetAttribute, requestId);
-	doc.addEventListener(videoFoundEvent, listener);
-	try {
-		const request: FindVideoRequest = { requestId, keys };
-		doc.dispatchEvent(new CustomEvent(findVideoEvent, { detail: JSON.stringify(request) }));
-	}
-	finally {
-		doc.removeEventListener(videoFoundEvent, listener);
-		if (target !== undefined) target.removeAttribute(targetAttribute);
-	}
-	return answer;
+	const request: FindVideoRequest = { requestId: newRequestId(), keys };
+	const response = exchange<FindVideoRequest, FindVideoResponse>(doc, target, findVideoEvent, videoFoundEvent, request);
+	if (response === undefined) return undefined;
+	console.log(`TIL video found by the page world: ${response.source}`);
+	return response.media;
 }
 
 /** the tweet's permalink (the link with <time>) in the article */
-function tweetOfArticle(article: Element, baseUrl: string): { userId: string, tweetId: string } | undefined {
+export function tweetOfArticle(article: Element, baseUrl: string): { userId: string, tweetId: string } | undefined {
 	const links = Array.from(article.querySelectorAll<HTMLAnchorElement>('a[href*="/status/"]'))
 		.filter(a => a.closest('article') === article);
 	const withTime = links.filter(a => a.querySelector('time') !== null);

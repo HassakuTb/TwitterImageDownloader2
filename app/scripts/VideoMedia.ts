@@ -15,6 +15,7 @@
  *
  * No dependency on chrome api; shared by the page-world script and the content script.
  */
+import { decodedLiteralsWith, objectsWithKeyInJsonText } from "./JsonScan";
 
 export interface VideoVariant {
 	readonly url: string;
@@ -215,41 +216,10 @@ export function parseMediaPath(url: string): MediaPath | undefined {
  */
 export function videoMediaInJsonText(text: string): VideoMedia[] {
 	const found: VideoMedia[] = [];
-	if (text.indexOf('"video_info"') < 0) return found;
-
-	const starts: number[] = [];          // positions of open "{" / "["
-	const candidates: boolean[] = [];     // the object holds a "video_info" key
-	for (let i = 0; i < text.length; i++) {
-		const c = text.charCodeAt(i);
-		if (c === 0x22) {   // "
-			let j = i + 1;
-			while (j < text.length) {
-				const d = text.charCodeAt(j);
-				if (d === 0x5c) j += 2;         // backslash
-				else if (d === 0x22) break;
-				else j++;
-			}
-			if (j - i === 11 && text.substr(i, 12) === '"video_info"' && candidates.length > 0) {
-				candidates[candidates.length - 1] = true;
-			}
-			i = j;
-		}
-		else if (c === 0x7b || c === 0x5b) {   // { [
-			starts.push(i);
-			candidates.push(false);
-		}
-		else if (c === 0x7d || c === 0x5d) {   // } ]
-			const start = starts.pop();
-			const isCandidate = candidates.pop();
-			if (start !== undefined && isCandidate === true) {
-				try {
-					const media = toVideoMedia(JSON.parse(text.slice(start, i + 1)));
-					if (media !== undefined) found.push(media);
-				}
-				catch (e) { /* not a complete object */ }
-			}
-		}
-	}
+	objectsWithKeyInJsonText(text, 'video_info').forEach(o => {
+		const media = toVideoMedia(o);
+		if (media !== undefined) found.push(media);
+	});
 	return found;
 }
 
@@ -259,20 +229,8 @@ export function videoMediaInJsonText(text: string): VideoMedia[] {
  */
 export function videoMediaInScriptText(script: string): VideoMedia[] {
 	const found: VideoMedia[] = [];
-	if (script.indexOf('video_info') < 0) return found;
-
-	const literal = /"((?:[^"\\\n]|\\.)*)"/g;
-	let m: RegExpExecArray | null;
-	while ((m = literal.exec(script)) !== null) {
-		if (m[1].indexOf('video_info') < 0) continue;
-		let decoded: string;
-		try {
-			decoded = JSON.parse(`"${m[1]}"`);
-		}
-		catch (e) {
-			continue;
-		}
+	decodedLiteralsWith(script, 'video_info').forEach(decoded => {
 		videoMediaInJsonText(decoded).forEach(x => found.push(x));
-	}
+	});
 	return found;
 }

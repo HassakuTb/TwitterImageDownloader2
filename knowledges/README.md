@@ -22,7 +22,7 @@ X（旧 Twitter）の Web クライアント、画像配信、ブラウザ拡張
 - [context-menu.md](x-client/context-menu.md) — 画像を右クリックしたときの X 独自メニュー（旧・新クライアント）と、標準のメニューを出す方法
 - [display-name.md](x-client/display-name.md) — 表示名の取り方と絵文字の扱い
 - [logged-out-access.md](x-client/logged-out-access.md) — ログアウト状態で見られるページ
-- [tweet-data.md](x-client/tweet-data.md) — ページがツイートのデータ（動画の URL を含む）を得ている場所（旧クライアントの XHR、React の props、x-web の SSR への埋め込み）
+- [tweet-data.md](x-client/tweet-data.md) — ページがツイートのデータ（動画の URL を含む）を得ている場所（旧クライアントの XHR、React の props、x-web の SSR への埋め込み）と、ツイート単位のメディアの一覧の形（旧クライアントの `legacy.extended_entities`、x-web の `media_entities2`、要素が属するツイートを React の props から見つける方法）
 
 ### media/ — 画像とツイートのメタデータ
 

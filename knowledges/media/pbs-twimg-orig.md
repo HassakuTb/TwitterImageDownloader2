@@ -44,6 +44,10 @@ HEAD リクエストでも同じ結果（原本が JPEG の画像に `format=png
 
 `response.headers.get('access-control-allow-origin')` は `null` でした。CORS のレスポンスで JavaScript から読めるヘッダは限られているためです。ヘッダが読めなくても、リクエスト自体は成功します。syndication API の `media_url_https` も拡張子付きなので、そこからもわかります（[syndication-api.md](syndication-api.md)）。
 
+## GraphQL の `media_url_https` の拡張子（2026-11-17）
+
+ログイン時の GraphQL の応答（検索 `SearchTimeline`）にあった写真 22 件の `media_url_https`（`…/media/<key>.<jpg|png>`）の拡張子は、すべて HEAD で 200 になった形式と一致しました。うち 2 件が PNG でした（[tweet-data.md](../x-client/tweet-data.md)）。
+
 ## PNG の画像を探すコツ
 
 ログイン時のホームで集めた画像 56 件は、すべて JPEG でした。PNG の原本は、ドット絵の検索（`ドット絵 filter:images`、最新順）で見つかりました。

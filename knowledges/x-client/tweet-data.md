@@ -95,6 +95,50 @@
 - 文字列リテラルを `JSON.parse('"' + 中身 + '"')` で戻すと JSON の文字列になり、その中の `"video_info"` を含むオブジェクトを取り出せました。NASA のツイート詳細から 3 件、`@GIPHY` のプロフィールから 5 件（動画 1、GIF 4）でした（node で確認）。
 - `$_TSR` は、hydration とストリームの終わりのあとで自分を消すコード（`delete self.$_TSR`）を持っています。読み込みが終わってから `window.$_TSR` を読む方法は使えない見込みです。
 
+## ツイート単位のメディアの一覧（2026-11-17 確認）
+
+- 方法: Claude in Chrome（ログイン済み、旧クライアント）。`javascript_tool` で XHR をフックし、`history.pushState` と `popstate` で検索 `from:NASA filter:quote filter:images` に切り替えた。
+
+### GraphQL の応答
+
+`SearchTimeline`（172,621 字）に、`extended_entities.media` を持つオブジェクトが 22 件ありました。どれもツイートの `legacy` で、次の 2 つの場所にありました。
+
+| 場所（末尾） | 中身 |
+|---|---|
+| `itemContent.tweet_results.result.legacy` | タイムラインのツイート |
+| `result.quoted_status_result.result.legacy` | 引用元のツイート |
+
+- `legacy` には `id_str`（ツイート ID）と `extended_entities.media` があります。`entities.media` も並んでいます。
+- `extended_entities.media` の並び順は、ツイート内の位置の順でした。2 枚のツイートでは、`expanded_url` が `…/photo/1` と `…/photo/2` でした。
+- 各メディアには、`type`（`photo` / `video` / `animated_gif`）、`id_str`、`media_url_https`、`expanded_url` があります。
+- 写真の `media_url_https` は `https://pbs.twimg.com/media/<key>.<jpg|png>` です。22 件の拡張子を、`format=jpg` と `format=png` の HEAD（`name=orig`）と比べると、すべて 200 になった形式と一致しました。うち 2 件が PNG でした（[pbs-twimg-orig.md](../media/pbs-twimg-orig.md)）。
+- この 22 件に `source_status_id_str` を持つメディアはありませんでした。ほかのツイートのメディアを使い回したツイートの形は、まだ確かめていません。
+- リツイートの形（`legacy.retweeted_status_result`）も、この画面にはなかったので確かめていません。
+
+### x-web の SSR に埋め込まれたツイートの形
+
+2026-11-17 に、前に curl で取得したログアウト版の SSR（`/NASA/status/2122404409292337592`、`/GIPHY`）を node で解析しました。旧クライアントの GraphQL とは形が違いました。
+
+- ツイートは `__typename: "Tweet"` のオブジェクトで、ツイート ID は `rest_id` にあります。`legacy` には `id_str` も `extended_entities` もありません（`legacy.entities.media` には `expanded_url` だけがありました）。
+- メディアは `media_entities2` の配列にあります。各要素には `type`、`id_str`、`media_url_https`、`expanded_url`、動画なら `video_info` があります。メディアのないツイートでは空の配列でした。
+- ユーザーは `core.user_results.result.core` の `screen_name` と `name` にあります。
+- 引用は `quoted_tweet_results` にありました。
+- GIPHY のプロフィールでは、メディア付きのツイートが 5 件（動画 1、GIF 4）でした。GIF の `expanded_url` は `…/photo/1` でした。
+
+### React の props: 要素が属するツイート
+
+本文（`[data-testid=tweetText]`）の `__reactFiber` から `.return` をたどると、`memoizedProps.tweet` に、その本文が属するツイートのデータがありました。
+
+| 起点 | 最初に `memoizedProps.tweet` が見つかった段 | そのツイート |
+|---|---|---|
+| 本体の本文 | 64 | 本体 |
+| 引用元の本文 | 35（同じ段に `quotingTweet` = 本体） | 引用元 |
+
+- 引用元の本文から上にたどっても、最初に見つかる `tweet` は引用元でした。さらに上（39 段、79 段）では、本体の `tweet` が見つかります。
+- `tweet` には `id_str`、`user`（`screen_name`、`name`、`id_str` など）、`extended_entities.media`、`permalink`、`quoted_status` などがあります。メディアのフィールドは GraphQL と同じで、動画には `video_info.variants` もありました。
+
+## 関連
+
 ## 関連
 
 - [video-twimg.md](../media/video-twimg.md)
