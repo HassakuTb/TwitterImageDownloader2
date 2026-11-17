@@ -5,6 +5,8 @@ import { SaveButton } from './SaveButton';
 import { Spinner } from './Spinner';
 import { DownloadToField } from './DownloadToField';
 import { EnableSaveAsField } from './EnableSaveAsField';
+import { ContextMenuFields } from './ContextMenuFields';
+import { ReadContextMenuSetting, DefaultShiftNativeMenu, DefaultOverrideContextMenu } from '../../../scripts/Setting';
 import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, TagUserName} from '../../../scripts/Setting';
 import { TagYear, TagMonth, TagDay, TagHour, TagMin, TagSec } from '../../../scripts/Setting';
 import { TagPostYear, TagPostMonth, TagPostDay, TagPostHour, TagPostMin, TagPostSec } from '../../../scripts/Setting';
@@ -25,6 +27,8 @@ interface OptionState{
   isLoaded: boolean;
   dirnameDownloadTo: string;
   enableOpenSaveAs: boolean;
+  shiftNativeMenu: boolean;
+  overrideContextMenu: boolean;
   isValidWithEmptyFilename: boolean;
   isValidWithParse: boolean;
 }
@@ -38,6 +42,7 @@ export class OptionsForm extends Component<any, OptionState>{
       isLoaded : false,
       dirnameDownloadTo: defaultDirnameDownloadTo,
       enableOpenSaveAs: defaultEnableOpenSaveAs,
+      ...ReadContextMenuSetting({}),
       isValidWithEmptyFilename: false,
       isValidWithParse: false,
     }
@@ -49,6 +54,8 @@ export class OptionsForm extends Component<any, OptionState>{
     chrome.storage.local.set({
       download_to: this.state.dirnameDownloadTo,
       open_save_as: this.state.enableOpenSaveAs,
+      shift_native_menu: this.state.shiftNativeMenu,
+      override_context_menu: this.state.overrideContextMenu,
       data_version: 2,
     }, () =>{
       this.setState({
@@ -63,6 +70,8 @@ export class OptionsForm extends Component<any, OptionState>{
     chrome.storage.local.get({
       download_to : defaultDirnameDownloadTo,
       open_save_as : defaultEnableOpenSaveAs,
+      shift_native_menu : DefaultShiftNativeMenu,
+      override_context_menu : DefaultOverrideContextMenu,
       data_version : 1,
     }, (items: any) => {
       
@@ -72,11 +81,14 @@ export class OptionsForm extends Component<any, OptionState>{
       if(!IsLatestDataVersion(setting)){
         setting = MigrateSetting1to2(setting);
       }
+      const menuSetting = ReadContextMenuSetting(items as Setting);
 
       this.setState({
         isLoaded: true,
         dirnameDownloadTo: setting.download_to!,
         enableOpenSaveAs: setting.open_save_as!,
+        shiftNativeMenu: menuSetting.shiftNativeMenu,
+        overrideContextMenu: menuSetting.overrideContextMenu,
         isValidWithEmptyFilename: this.isValidWithEmptyFilename(setting.download_to!),
         isValidWithParse: this.isValidWithParse(setting.download_to!),
       });
@@ -131,6 +143,11 @@ export class OptionsForm extends Component<any, OptionState>{
       return(
         <Layout>
           <EnableSaveAsField isOn={this.state.enableOpenSaveAs} onClick={() => this.setState({enableOpenSaveAs: !this.state.enableOpenSaveAs})}/>
+          <ContextMenuFields
+            shiftNativeMenu={this.state.shiftNativeMenu}
+            overrideContextMenu={this.state.overrideContextMenu}
+            onClickShiftNativeMenu={() => this.setState({shiftNativeMenu: !this.state.shiftNativeMenu})}
+            onClickOverrideContextMenu={() => this.setState({overrideContextMenu: !this.state.overrideContextMenu})} />
           <DownloadToField
             isValidWithEmptyFilename={this.state.isValidWithEmptyFilename}
             isValidWithParse={this.state.isValidWithParse}
@@ -148,4 +165,4 @@ export class OptionsForm extends Component<any, OptionState>{
       );
     }
   }
-}
+}
