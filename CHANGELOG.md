@@ -1,4 +1,7 @@
 ## Unreleased
+### Added
+Settings to open the browser's context menu on images, since X now shows its own menu there: Shift + right-click (default on), always (default off).
+
 ### Fixed
 Fix download from the media tab (/<user>/media?filter=photo).
 Fix post date and user name of images in a quoted tweet and in the image viewer.

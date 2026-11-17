@@ -21,10 +21,17 @@ export const TagExtension: string = "<ext>";
 
 export const DefaultFilename: string = `${TagYear}-${TagMonth}/${TagUserId}-${TagTweetId}-${TagImageIndex}.${TagExtension}`;
 
+/** Shift + right click on an image opens the browser's context menu instead of X's own menu */
+export const DefaultShiftNativeMenu: boolean = true;
+/** Right click on an image always opens the browser's context menu instead of X's own menu */
+export const DefaultOverrideContextMenu: boolean = false;
+
 export const CreateDefaultSetting: () => Setting = () => {
 	return {
 		download_to: `Twitter/${DefaultFilename}`,
 		open_save_as: false,
+		shift_native_menu: DefaultShiftNativeMenu,
+		override_context_menu: DefaultOverrideContextMenu,
 		data_version: LatestDataVersion,
 	}
 };
@@ -48,5 +55,21 @@ export const IsLatestDataVersion: (setting: Setting) => boolean = (setting: Sett
 export interface Setting {
 	download_to?: string;
 	open_save_as?: boolean;
+	/** added after data_version 2; undefined means the default */
+	shift_native_menu?: boolean;
+	/** added after data_version 2; undefined means the default */
+	override_context_menu?: boolean;
 	data_version?: number;
 }
+
+export interface ContextMenuSetting {
+	shiftNativeMenu: boolean;
+	overrideContextMenu: boolean;
+}
+
+export const ReadContextMenuSetting: (setting: Setting) => ContextMenuSetting = (setting: Setting) =>{
+	return {
+		shiftNativeMenu: typeof setting.shift_native_menu === 'boolean' ? setting.shift_native_menu : DefaultShiftNativeMenu,
+		overrideContextMenu: typeof setting.override_context_menu === 'boolean' ? setting.override_context_menu : DefaultOverrideContextMenu,
+	}
+}
