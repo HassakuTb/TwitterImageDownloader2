@@ -30,7 +30,19 @@ HEAD リクエストでも同じ結果（原本が JPEG の画像に `format=png
 - **旧クライアント**: `img` の src が `format=jpg` か `format=png` で、原本の形式が出ていると見られます。
 - **新クライアント**: src が `format=webp&name=large` なので、DOM からはわかりません。
 
-上の表のとおり、原本の形式でだけ 200 が返るので、`format=jpg` と `format=png` に HEAD を送れば原本の形式がわかります。syndication API の `media_url_https` も拡張子付きなので、そこからもわかります（[syndication-api.md](syndication-api.md)）。
+上の表のとおり、原本の形式でだけ 200 が返るので、`format=jpg` と `format=png` に HEAD を送れば原本の形式がわかります。
+
+2026-11-17 に、x.com のページから `fetch(url, {method: 'HEAD', credentials: 'omit'})` で 5 件を確かめました。CORS で弾かれずに結果を読めて、旧クライアントの src の `format` と一致しました。
+
+| mediaId | src の format | HEAD で 200 になった format |
+|---|---|---|
+| `HXTzRaSbsAA236r` | png | png |
+| `HXTvR5YaQAAJQmp` | png | png |
+| `HXBNsEVWgAAsCUY` | jpg | jpg |
+| `HWs1e44XsAAZhkB` | jpg | jpg |
+| `HXCqHIDbAAAbdqi` | （未記録） | jpg |
+
+`response.headers.get('access-control-allow-origin')` は `null` でした。CORS のレスポンスで JavaScript から読めるヘッダは限られているためです。ヘッダが読めなくても、リクエスト自体は成功します。syndication API の `media_url_https` も拡張子付きなので、そこからもわかります（[syndication-api.md](syndication-api.md)）。
 
 ## PNG の画像を探すコツ
 

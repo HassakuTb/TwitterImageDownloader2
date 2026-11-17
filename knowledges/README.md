@@ -19,7 +19,7 @@ X（旧 Twitter）の Web クライアント、画像配信、ブラウザ拡張
 - [responsive-web-dom.md](x-client/responsive-web-dom.md) — 旧クライアント（ログイン時）の画像まわりの DOM
 - [x-web-dom.md](x-client/x-web-dom.md) — 新クライアント（ログアウト時）の画像まわりの DOM
 - [media-tab.md](x-client/media-tab.md) — プロフィールのメディアタブが「動画 / 画像」に分かれた件
-- [context-menu.md](x-client/context-menu.md) — 新クライアントで右クリックがどう扱われるか
+- [context-menu.md](x-client/context-menu.md) — 画像を右クリックしたときの X 独自メニュー（旧・新クライアント）と、標準のメニューを出す方法
 - [display-name.md](x-client/display-name.md) — 表示名の取り方と絵文字の扱い
 - [logged-out-access.md](x-client/logged-out-access.md) — ログアウト状態で見られるページ
 

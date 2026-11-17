@@ -17,6 +17,8 @@
 - `img.closest('a')` で `/<user>/status/<id>/photo/<n>` に届きます。
 - `main` 内に `[data-testid=UserName]` があり、表示名を取れます。
 - 画像は `article` の中にありません。タイムラインと同じ方法（`img.closest('article')`）では、ツイートの枠を見つけられません。
+- 表示名を持つ `a[href="/<user>"]` はありません。ページの title（`NASA（@NASA）さんの画像 / X` など）には表示名と `@<user>` が入っています（[display-name.md](display-name.md)）。
+- `@NASA` では、グリッドに `img` が 19〜34 件ありました（スクロール量による）。どれも `img.closest('a')` で `/photo/N` に届きました（2026-11-17）。
 
 ## 注意点
 
