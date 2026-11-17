@@ -78,6 +78,7 @@ X の「GIF」には GIF ファイルがありません。mp4 だけです。
 | `pbs.twimg.com/media/<mediaId>` | NASA の動画。画像と同じ形なので、URL だけでは画像と区別できない |
 | `pbs.twimg.com/amplify_video_thumb/<数値ID>/img/<キー>` | `@GIPHY` のプロフィールにあった別の動画 |
 | `pbs.twimg.com/tweet_video_thumb/<キー>` | GIF |
+| `pbs.twimg.com/ext_tw_video_thumb/<数値ID>/pu/img/<キー>` | `@GIPHY` のメディアタブの古い動画（2026-11-17、旧クライアント） |
 
 ## データの中のメディア
 

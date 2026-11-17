@@ -56,6 +56,13 @@
 - `targetUrlPatterns` で、`srcUrl` や `linkUrl` の URL パターンを絞り込める。
 - `onClicked` には、右クリックされた DOM 要素そのものは渡されない。要素を知るには、content script で `contextmenu` イベントの `event.target` を受ける必要がある。
 
+## 拡張の項目が 2 つ以上あるとき（2026-11-17、Chrome で確認）
+
+- 1 つの拡張の項目が、同じ右クリックで 2 つ以上当てはまると、Chrome は拡張名のサブメニューにまとめます。拡張の側から、まとめずに並べる方法はありません。
+- `contextMenus.update(id, { visible: false })` で隠した項目も数に入りました。隠した項目は出ないのに、中身が 1 つのサブメニューになりました。
+- `contexts` や `targetUrlPatterns` が当てはまらない項目は、数に入りませんでした。動画の拡張の項目のうち、写真の上にマウスがある間だけ `targetUrlPatterns` から `https://pbs.twimg.com/media/*` を外すと、写真の上では「Download Original Image」だけが直接出ました。
+- 切り替えは、content script が `pointerover` で写真の上かどうかを判定して background に送り、background が `contextMenus.update` します。右クリックより前（マウスがセルに乗った時点）に切り替わるので、メニューの組み立てに間に合いました（ユーザーが手で確認）。
+
 ## 外部の情報
 
 - 他の拡張の対応例: [twitter-click-and-save](https://github.com/AlttiRi/twitter-click-and-save)、[TwitterMediaHarvest Issue #382](https://github.com/EltonChou/TwitterMediaHarvest/issues/382)

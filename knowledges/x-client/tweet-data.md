@@ -30,7 +30,9 @@
 
 ### 未確認
 
-ページを読み込み直した直後の `TweetDetail` も XHR を通るかは、確認できていません。Claude in Chrome のネットワークの記録は、読み込み直後の要求を取りこぼします（[claude-in-chrome.md](../dev/claude-in-chrome.md)）。`javascript_tool` では、ページの読み込みより先にフックを仕掛けられません。
+ページを読み込み直した直後の `TweetDetail` も XHR を通るかは、確認できていません。
+
+2026-11-17 追記: 拡張の MAIN world 用スクリプトを `registerContentScripts`（world MAIN、document_start）で登録した Chrome で、ツイート詳細 `/NASA/status/2122404409292337592` を新しいタブで開くと、スクリプトは `document.readyState` が `loading` の時点で動き、読み込み直後の **XHR** の `TweetResultByRestId`（6,948 字、対象の動画を含む）を拾えました。この読み込みの直後には、`TweetDetail` のログは出ませんでした。Claude in Chrome のネットワークの記録は、読み込み直後の要求を取りこぼします（[claude-in-chrome.md](../dev/claude-in-chrome.md)）。`javascript_tool` では、ページの読み込みより先にフックを仕掛けられません。
 
 ## 旧クライアント: React の props にもある
 
@@ -42,7 +44,20 @@
 - `id_str: "2122404339197030400"`
 - `video_info.variants`（5 本。うち mp4 は 4 本）
 
-この段数とプロパティ名は、このページのこの要素で見つかった値です。画面の種類や再生中の状態では、まだ確かめていません。
+この段数とプロパティ名は、このページのこの要素で見つかった値です。
+
+2026-11-17 追記（ほかの状態、[responsive-web-dom.md](responsive-web-dom.md)）:
+
+| 状態 | 起点の要素 | `memoizedProps.mediaDetails` までの段数 |
+|---|---|---|
+| 再生前の動画・GIF（プロフィール、詳細） | poster の `img` | 57 |
+| 再生中の GIF・動画 | `<video>` の 2 つ上の `DIV`（`<video>` 自体には `__reactFiber` がない） | 93 |
+| 再生中の動画 | 右クリックが当たる `opacity: 0` の poster の `img` | 131 |
+
+- `mediaDetails` はツイートのメディア全部の配列で、並び順は DOM のセルの順と同じでした。
+- 各メディアの `expanded_url` は `https://x.com/<user>/status/<id>/photo/<N>` または `…/video/<N>` で、N はツイート内の位置（1 始まり、動画も数える）です。
+- `media_url_https` は、ページに出ている poster と同じキーを含みました（`/media/<mediaId>.jpg`、`amplify_video_thumb/<数値ID>/img/<キー>.jpg`、`tweet_video_thumb/<キー>.jpg`）。
+- GIF は `type: "animated_gif"` で、variants は 1 本でした。
 
 これらのプロパティは、ページの JavaScript の世界で付けられたものです。`javascript_tool` はページの世界でコードを動かすので読めました。拡張の content script は既定で別の世界（isolated world）で動くので、そのままでは読めません（Chrome の仕様による。今回は試していません。[main-world.md](../extension/main-world.md)）。
 
@@ -65,6 +80,20 @@
 - x-web で画面を切り替えたとき、データをどの通信（`fetch` か XHR か）で受け取るか
 - ログイン時の x-web でも、同じように埋め込まれるか
 - x-web の React の props の形
+
+## 2026-11-17 追記: 拡張の試作で確かめたこと
+
+拡張の MAIN world 用スクリプト（`app/scripts/PageWorld.ts`）を、Claude in Chrome の `javascript_tool` でログイン済みのページ（旧クライアント）に読み込み後に流し込んで確かめました。document_start で登録した状態は、まだ確かめていません。
+
+- 読み込み後に `XMLHttpRequest.prototype` を差し替えても、画面を切り替えたときの GraphQL の応答を拾えました。`video_info` を含んでいた応答は、`UserOriginalsTimeline`（プロフィール、132,300 字、のべ 34 件）と `SearchTimeline`（検索、255,910 字、のべ 50 件）でした。同じメディアが応答の中に何度も出てきます。
+- 応答の JSON から `"video_info"` を含むオブジェクトだけを取り出して照合する方法で、プロフィールの動画・GIF と、検索結果の写真と動画が混ざったツイートを特定できました。
+- 表に入っていないツイート（流し込む前に表示されていたもの）は、React の props から見つかりました（poster の `img` から 57 段）。
+
+### x-web の埋め込みデータの形
+
+- ログアウト版の SSR で、`video_info` を含む `<script>` の中身は、`(self.$R=self.$R||{})["tsr"]=[];self.$_TSR={…}` や `($R=>$R[21].next(…))` の形の JavaScript でした。GraphQL の応答は、その中の **JavaScript の文字列リテラル**に、JSON の文字列として入っています（`\"` でエスケープ）。
+- 文字列リテラルを `JSON.parse('"' + 中身 + '"')` で戻すと JSON の文字列になり、その中の `"video_info"` を含むオブジェクトを取り出せました。NASA のツイート詳細から 3 件、`@GIPHY` のプロフィールから 5 件（動画 1、GIF 4）でした（node で確認）。
+- `$_TSR` は、hydration とストリームの終わりのあとで自分を消すコード（`delete self.$_TSR`）を持っています。読み込みが終わってから `window.$_TSR` を読む方法は使えない見込みです。
 
 ## 関連
 
