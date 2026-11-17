@@ -1,4 +1,4 @@
-## Unreleased
+## 2.3.0 - 2026-11-18
 ### Added
 Settings to open the browser's context menu on images, since X now shows its own menu there: Shift + right-click (default on), always (default off).
 Download videos and GIFs (beta, off by default). "Download Video (beta)" saves the highest quality mp4 (GIFs are saved as mp4) with the same filename format as images. While it is on, a video's poster saved by "Download Original Image" is also named like the video. Needs Chrome 102+ or Firefox 128+.
