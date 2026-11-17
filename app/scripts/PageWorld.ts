@@ -1,5 +1,5 @@
 /**
- * Page-world (MAIN world) script for video download (beta).
+ * Page-world (MAIN world) script for video download and "download all media in a post" (beta).
  *
  * Registered by the background only while the beta setting is on (PageScriptRegistry.ts).
  * It runs in X's own JavaScript world, so it can see what the isolated content script cannot:
@@ -13,13 +13,17 @@
  */
 import { VideoTable } from "./VideoTable";
 import { videoMediaInJsonText, videoMediaInScriptText, VideoMedia } from "./VideoMedia";
-import { findInReactProps } from "./ReactProps";
-import { FindVideoRequest, FindVideoResponse, findVideoEvent, targetAttribute, videoFoundEvent } from "./PageProtocol";
+import { TweetTable } from "./TweetTable";
+import { TweetMediaList, mayHoldTweetMedia, tweetMediaInJsonText, tweetMediaInScriptText } from "./TweetMedia";
+import { findInReactProps, findTweetInReactProps } from "./ReactProps";
+import { FindTweetRequest, FindTweetResponse, FindVideoRequest, FindVideoResponse, findTweetEvent, findVideoEvent, targetAttribute, tweetFoundEvent, videoFoundEvent } from "./PageProtocol";
 
 const installedFlag: string = '__twitterImageDL_pageWorld';
 const graphqlPattern: RegExp = /\/i\/api\/graphql\/[^\/]+\/([A-Za-z0-9_]+)/;
 
 const table = new VideoTable();
+/** download all media in a post (beta) */
+const tweets = new TweetTable();
 
 /** the extension runtime is visible only in the isolated world (a browser that ignored world: MAIN) */
 function isIsolatedWorld(): boolean {
@@ -40,11 +44,21 @@ function addAll(media: VideoMedia[]): void {
 	media.forEach(m => table.add(m));
 }
 
+function addTweets(list: TweetMediaList[]): void {
+	list.forEach(t => tweets.add(t));
+}
+
 function onResponseText(source: string, url: string, text: string): void {
-	if (text.indexOf('"video_info"') < 0) return;
-	const media = videoMediaInJsonText(text);
-	addAll(media);
-	console.log(`TIL page: ${source} ${operationName(url)} ${text.length} chars, ${media.length} videos (table ${table.size})`);
+	if (text.indexOf('"video_info"') >= 0) {
+		const media = videoMediaInJsonText(text);
+		addAll(media);
+		console.log(`TIL page: ${source} ${operationName(url)} ${text.length} chars, ${media.length} videos (table ${table.size})`);
+	}
+	if (mayHoldTweetMedia(text)) {
+		const list = tweetMediaInJsonText(text);
+		addTweets(list);
+		console.log(`TIL page: ${source} ${operationName(url)} ${list.length} tweets (table ${tweets.size})`);
+	}
 }
 
 function hookXhr(): void {
@@ -110,10 +124,16 @@ const pendingScripts: HTMLScriptElement[] = [];
 function readPendingScripts(): void {
 	while (pendingScripts.length > 0) {
 		const script = pendingScripts.shift()!;
-		const media = videoMediaInScriptText(script.textContent || '');
+		const text = script.textContent || '';
+		const media = videoMediaInScriptText(text);
 		if (media.length > 0) {
 			addAll(media);
 			console.log(`TIL page: inline script, ${media.length} videos (table ${table.size})`);
+		}
+		const list = tweetMediaInScriptText(text);
+		if (list.length > 0) {
+			addTweets(list);
+			console.log(`TIL page: inline script, ${list.length} tweets (table ${tweets.size})`);
 		}
 	}
 }
@@ -167,6 +187,43 @@ function onFindVideo(event: Event): void {
 	respond({ requestId: request.requestId, media: fromReact !== undefined ? fromReact : null, source: fromReact !== undefined ? 'react' : undefined });
 }
 
+function respondTweet(response: FindTweetResponse): void {
+	document.dispatchEvent(new CustomEvent(tweetFoundEvent, { detail: JSON.stringify(response) }));
+}
+
+/**
+ * download all media in a post (beta): the media of the tweet.
+ * The data (XHR / fetch / inline script) when the id is known, otherwise the React props of the
+ * right-clicked element (a tab opened before the script was injected, or a quoted tweet without its id).
+ */
+function onFindTweet(event: Event): void {
+	let request: FindTweetRequest;
+	try {
+		request = JSON.parse(String((event as CustomEvent).detail));
+	}
+	catch (e) {
+		return;
+	}
+	if (request === null || typeof request.requestId !== 'string') return;
+
+	readPendingScripts();
+	if (typeof request.tweetId === 'string') {
+		const fromData = tweets.find(request.tweetId);
+		if (fromData !== undefined) {
+			respondTweet({ requestId: request.requestId, tweet: fromData, source: 'data' });
+			return;
+		}
+	}
+
+	const target = document.querySelector(`[${targetAttribute}="${request.requestId}"]`);
+	const fromReact = target !== null ? findTweetInReactProps(target, {
+		tweetId: typeof request.tweetId === 'string' ? request.tweetId : undefined,
+		excludeId: typeof request.excludeId === 'string' ? request.excludeId : undefined,
+	}) : undefined;
+	if (fromReact !== undefined) tweets.add(fromReact);
+	respondTweet({ requestId: request.requestId, tweet: fromReact !== undefined ? fromReact : null, source: fromReact !== undefined ? 'react' : undefined });
+}
+
 (function main(): void {
 	if (isIsolatedWorld()) {
 		console.warn('TIL page: not running in the page world; video download (beta) is not available');
@@ -180,5 +237,6 @@ function onFindVideo(event: Event): void {
 	hookFetch();
 	watchInlineScripts();
 	document.addEventListener(findVideoEvent, onFindVideo);
+	document.addEventListener(findTweetEvent, onFindTweet);
 	console.log(`TIL page: installed (${document.readyState})`);
 })();

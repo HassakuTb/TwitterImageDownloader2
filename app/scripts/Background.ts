@@ -1,9 +1,10 @@
 import { ImageInfo, ImageInfoImpl, ImageInfoUnresolve, ResolvedMedia, VideoInfo } from "./ImageInfo";
 import { Extension, guessExtension, originalUrl } from "./Twimg";
-import { Setting, CreateDefaultSetting, IsLatestDataVersion, MigrateSetting1to2, ReadVideoBeta } from "./Setting";
+import { Setting, CreateDefaultSetting, IsLatestDataVersion, MigrateSetting1to2, ReadVideoBeta, ReadBulkIncludeVideo, BulkFilenameFormat } from "./Setting";
 import { injectIntoOpenTabs, syncPageScript } from "./PageScriptRegistry";
 import { isVideoUrl } from "./VideoMedia";
 import { ResolvedVideo, VideoResolveFailure, isVideoResolveFailure, messageNotFound, messageNotVideo } from "./VideoResolver";
+import { PostResolveFailure, ResolvedPost, isPostResolveFailure, messagePostNotFound } from "./TweetResolver";
 
 const menuId: string = 'downloadTwitterImage';
 
@@ -86,6 +87,10 @@ const videoOnlyPosterPatterns: string[] = [
 /** /media/ is used by photos and some video posters */
 const posterPatterns: string[] = ['https://pbs.twimg.com/media/*'].concat(videoOnlyPosterPatterns);
 
+/** download all media in a post (beta): right-click the text or a blank area of a post */
+const bulkMenuId: string = 'downloadTwitterPostMedia';
+const bulkMenuTitle: string = 'Download All Media in Post (beta)';
+
 /**
  * create context menu
  *  image : old client (img is right-clicked; srcUrl is reported)
@@ -95,6 +100,10 @@ const posterPatterns: string[] = ['https://pbs.twimg.com/media/*'].concat(videoO
  *  video : <video> (src is blob: or a GIF mp4, which cannot be matched by targetUrlPatterns)
  *  image : posters. /media/ is also used for photos, so the item is shown on photos too
  *          (the content script answers "not a video").
+ *
+ * download all media in a post (beta), only while it is active:
+ *  page / selection : the text or a blank area of a post. No other item of this extension appears there,
+ *                     so the item does not fold the photo / video items into a submenu.
  */
 let menuQueue: Promise<void> = Promise.resolve();
 
@@ -140,6 +149,15 @@ function createMenus(videoActive: boolean, done: () => void): void {
 			contexts: ['image'],
 			documentUrlPatterns: documentPatterns,
 			targetUrlPatterns: posterPatterns,
+		});
+		// shown only while the mouse is on a post (the content script switches it)
+		chrome.contextMenus.create({
+			type: 'normal',
+			id: bulkMenuId,
+			title: bulkMenuTitle,
+			contexts: ['page', 'selection'],
+			documentUrlPatterns: documentPatterns,
+			visible: false,
 		}, () => done());
 	});
 }
@@ -151,6 +169,16 @@ function createMenus(videoActive: boolean, done: () => void): void {
  * Items whose patterns do not match are not counted, so /media/ is taken out of the poster item's
  * patterns while the mouse is on a photo. The video item (video context) appears only on <video>.
  */
+chrome.runtime.onMessage.addListener((request: any) => {
+	if (request === null || typeof request !== 'object' || request.name !== 'twitterImageDL:bulkMenu') return;
+	// "visible" is missing in the old @types/chrome; the api has it (Chrome 62+, Firefox 63+)
+	const changes: chrome.contextMenus.UpdateProperties & { visible: boolean } = { visible: request.visible === true };
+	chrome.contextMenus.update(bulkMenuId, changes, () => {
+		// not created while the beta is off
+		if (chrome.runtime.lastError) return;
+	});
+});
+
 chrome.runtime.onMessage.addListener((request: any) => {
 	if (request === null || typeof request !== 'object' || request.name !== 'twitterImageDL:videoMenu') return;
 	const onPhoto = request.visible !== true;
@@ -194,6 +222,127 @@ function downloadVideo(setting: Setting, tabId: number, video: ResolvedVideo): v
 		videoDownloads[downloadId] = tabId;
 	});
 }
+
+/**
+ * download all media in a post (beta): one batch per click. A toast is shown once, after every download
+ * of the batch has ended, and only when something could not be saved.
+ */
+interface BulkBatch {
+	readonly tabId: number;
+	readonly total: number;
+	readonly failures: string[];
+	/** downloads started and not ended yet */
+	pending: number;
+	/** every item has been handed to chrome.downloads (or failed) */
+	started: boolean;
+}
+
+/** download ids of a post -> its batch */
+const bulkDownloads: { [id: number]: BulkBatch } = {};
+
+function finishBulkIfDone(batch: BulkBatch): void {
+	if (!batch.started || batch.pending > 0) return;
+	const failed = batch.failures.length;
+	if (failed === 0) return;
+	const reasons = batch.failures.filter((r, i, all) => all.indexOf(r) === i).join(' ');
+	showToast(batch.tabId, `Saved ${batch.total - failed} of ${batch.total}. ${failed} could not be saved: ${reasons}`);
+}
+
+function startDownload(batch: BulkBatch, url: string, filename: string): Promise<void> {
+	return new Promise<void>(resolve => {
+		chrome.downloads.download({ url, filename, saveAs: false }, (downloadId?: number) => {
+			if (chrome.runtime.lastError || downloadId === undefined) {
+				const reason = chrome.runtime.lastError ? chrome.runtime.lastError.message : 'unknown';
+				console.warn(`TIL post download failed: ${reason}`);
+				batch.failures.push(`Could not start a download (${reason}).`);
+			}
+			else {
+				batch.pending++;
+				bulkDownloads[downloadId] = batch;
+			}
+			resolve();
+		});
+	});
+}
+
+/**
+ * Save every item of the post, in order. "Save As" is not used (one dialog per file would open),
+ * and the format gets "-<imageindex>" when it would give every file the same name.
+ */
+async function downloadPost(setting: Setting, tabId: number, post: ResolvedPost): Promise<void> {
+	const format = BulkFilenameFormat(setting.download_to!);
+	const postDate = post.postTime !== undefined ? new Date(post.postTime) : undefined;
+	const batch: BulkBatch = { tabId, total: post.items.length, failures: [], pending: 0, started: false };
+	console.log("start post download: ");
+	console.log(post);
+
+	for (const item of post.items) {
+		if (item.kind === 'failed') {
+			batch.failures.push(item.reason);
+			continue;
+		}
+		if (item.kind === 'photo') {
+			const extension: Extension = item.extension === 'jpg' || item.extension === 'png' ? item.extension : await probeExtension(item.mediaId, undefined);
+			const image = new ImageInfoImpl(post.userId, post.tweetId, item.index, item.mediaId, extension, format, postDate, post.displayName);
+			await startDownload(batch, image.downloadUrl, image.filename);
+			continue;
+		}
+		// the answer comes through the page world, which the page can see; accept only X's video server
+		if (!isVideoUrl(item.url)) {
+			console.warn(`TIL refused a video url: ${item.url}`);
+			batch.failures.push(messageNotFound);
+			continue;
+		}
+		const video = new VideoInfo(item.url, item.original, format, {
+			userId: post.userId, tweetId: post.tweetId, index: item.index, displayName: post.displayName, postTime: post.postTime,
+		});
+		await startDownload(batch, video.downloadUrl, video.filename);
+	}
+	batch.started = true;
+	finishBulkIfDone(batch);
+}
+
+function onClickBulk(tabId: number): void {
+	loadSetting((setting: Setting) => {
+		chrome.tabs.sendMessage(
+			tabId,
+			{ name: 'twitterBulkDL', includeVideo: ReadBulkIncludeVideo(setting) },
+			(response: ResolvedPost | PostResolveFailure | null | undefined) => {
+				if (chrome.runtime.lastError) {
+					console.warn(`TIL send message failed: ${chrome.runtime.lastError.message}`);
+					return;
+				}
+				console.log("TIL post response: ");
+				console.log(response);
+				if (response === null || response === undefined) {
+					showToast(tabId, messagePostNotFound);
+					return;
+				}
+				if (isPostResolveFailure(response)) {
+					showToast(tabId, response.error);
+					return;
+				}
+				downloadPost(setting, tabId, response).catch(e => {
+					console.error(`TIL post download failed: ${e}`);
+					showToast(tabId, `Could not download the media of this post (${e}).`);
+				});
+			}
+		);
+	});
+}
+
+chrome.downloads.onChanged.addListener((delta: chrome.downloads.DownloadDelta) => {
+	const batch = bulkDownloads[delta.id];
+	if (batch === undefined || delta.state === undefined) return;
+	if (delta.state.current === 'in_progress') return;
+	if (delta.state.current === 'interrupted') {
+		const reason = delta.error !== undefined ? delta.error.current : 'interrupted';
+		batch.failures.push(`A download was interrupted (${reason}).`);
+	}
+	delete bulkDownloads[delta.id];
+	batch.pending--;
+	finishBulkIfDone(batch);
+});
 
 chrome.downloads.onChanged.addListener((delta: chrome.downloads.DownloadDelta) => {
 	const tabId = videoDownloads[delta.id];
@@ -242,6 +391,10 @@ chrome.contextMenus.onClicked.addListener((info: chrome.contextMenus.OnClickData
 	const tabId: number = tab.id;
 	if (info.menuItemId === videoMenuId || info.menuItemId === videoPosterMenuId) {
 		onClickVideo(info, tabId);
+		return;
+	}
+	if (info.menuItemId === bulkMenuId) {
+		onClickBulk(tabId);
 		return;
 	}
 	if (info.menuItemId !== menuId) return;
