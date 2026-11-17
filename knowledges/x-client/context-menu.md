@@ -63,6 +63,20 @@
 - `contexts` や `targetUrlPatterns` が当てはまらない項目は、数に入りませんでした。動画の拡張の項目のうち、写真の上にマウスがある間だけ `targetUrlPatterns` から `https://pbs.twimg.com/media/*` を外すと、写真の上では「Download Original Image」だけが直接出ました。
 - 切り替えは、content script が `pointerover` で写真の上かどうかを判定して background に送り、background が `contextMenus.update` します。右クリックより前（マウスがセルに乗った時点）に切り替わるので、メニューの組み立てに間に合いました（ユーザーが手で確認）。
 
+## 本文や余白の右クリック（2026-11-17、旧クライアント、React の props で確認）
+
+Claude in Chrome では `contextmenu` イベントを起こせないので（[claude-in-chrome.md](../dev/claude-in-chrome.md)）、要素から祖先へ 40 段たどり、`__reactProps$…` に `onContextMenu` を持つ要素を探しました（`/NASA/status/1921943067805802762`）。
+
+| 起点 | `onContextMenu` を持つ祖先 |
+|---|---|
+| 写真の `img` | 4 段上の `DIV` |
+| 本文 `[data-testid=tweetText]` の `span` | なし |
+| 時刻の行 | なし |
+| `[data-testid=User-Name]` | なし |
+| 操作ボタンの行 `[role=group]` | なし |
+
+React の props を見る限り、X が独自メニューを出すのは画像の上だけです。React を通さないリスナー（`addEventListener` で直接付けたもの）があるかは、この方法ではわかりません。本文の右クリックでブラウザ標準のメニューが出るかは、人が確かめる必要があります（未確認）。
+
 ## 外部の情報
 
 - 他の拡張の対応例: [twitter-click-and-save](https://github.com/AlttiRi/twitter-click-and-save)、[TwitterMediaHarvest Issue #382](https://github.com/EltonChou/TwitterMediaHarvest/issues/382)

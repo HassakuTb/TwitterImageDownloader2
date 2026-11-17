@@ -42,6 +42,7 @@ Google の Chrome DevTools MCP（`chrome-devtools-mcp`）を `--autoConnect` で
 - `javascript_tool` の戻り値は、約 1,000 文字で切り詰められます（`[TRUNCATED]`）。大きなデータを持ち出すのには向きません。ページの `window` や `sessionStorage` に置いたまま、集計した結果だけを返します（2026-11-17）。
 - `javascript_tool` は 45 秒で応答待ちが打ち切られます。ただし、ページ内の処理は止まらずに最後まで動きます。結果を `window` に置いておけば、次の呼び出しで読めます（2026-11-17）。
 - `history.pushState` のあとに `popstate` を発火させると、ページを再読み込みせずに x.com の画面を切り替えられます。`window` に置いた変数が残るので、何画面も続けて調べるときに便利です（2026-11-17）。
+- `computer` の `right_click` では、ページに `mousedown`（button 2）は届きますが、`contextmenu` イベントは届きませんでした。`javascript_tool` で `new MouseEvent('contextmenu')` を `dispatchEvent` しても、同じスクリプトで `window` に付けたリスナーさえ呼ばれません（`auxclick` や独自のイベントは呼ばれました）。Claude in Chrome の側で `contextmenu` を止めていると見られます。右クリックの挙動は、人が確かめる必要があります（2026-11-17）。
 - ブラウザ標準のコンテキストメニューは、スクリーンショットに映りません。ページ内に描画されるメニュー（X 独自のメニューなど）は映ります（2026-11-17）。
 - `read_network_requests` は、ページを読み込み直した直後の要求を取りこぼすことがあります。読み込み中に「pending」として見えた要求が、読み込みが終わると一覧から消えていました。`history.pushState` と `popstate` で画面を切り替えたときの要求は記録されました（2026-11-17）。
 - 応答の中身を調べたいときは、`javascript_tool` でページの `XMLHttpRequest.prototype.open` / `send` と `window.fetch` を差し替えて記録し、そのあと画面を切り替えると確実です。x.com では、読み込み後に差し替えても XHR を拾えました（[tweet-data.md](../x-client/tweet-data.md)、2026-11-17）。

@@ -68,6 +68,7 @@
 - 引用元の画像の `img.closest('a')` は、引用元のツイートの `/<引用元>/status/<id>/photo/<n>` です。
 - `article` 内に `time` が 2 つあり、最初のものは外側（引用した側）のツイートの日時です。`article time` の最初の要素を取ると、引用元の画像に外側の日時が付きます。
 - 引用元のユーザーの `a[href="/<引用元>"]` は `article` 内にありません（[display-name.md](display-name.md)）。
+- 2026-11-17 追記: 引用元は、`article` の中の `div[role=link][tabindex=0]` です。中に引用元の `[data-testid=User-Name]`、`[data-testid=tweetText]`、`time` があります。引用元の `time` は `<a>` の中にありません。`article` 内の `/status/<id>` のリンクは、本体のパーマリンクと、引用元の写真の `/photo/N` だけでした。引用元が動画だけ、または文字だけのときは、引用元のツイート ID は DOM のリンクに出ません（検索 `from:NASA filter:quote filter:images` の 2 件で確認）。React の props からは取れます（[tweet-data.md](tweet-data.md)）。
 
 ## ライトボックス
 
