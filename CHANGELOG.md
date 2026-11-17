@@ -1,6 +1,7 @@
 ## Unreleased
 ### Added
 Settings to open the browser's context menu on images, since X now shows its own menu there: Shift + right-click (default on), always (default off).
+Download videos and GIFs (beta, off by default). "Download Video (beta)" saves the highest quality mp4 (GIFs are saved as mp4) with the same filename format as images. While it is on, a video's poster saved by "Download Original Image" is also named like the video. Needs Chrome 102+ or Firefox 128+.
 
 ### Fixed
 Fix download from the media tab (/<user>/media?filter=photo).
@@ -9,6 +10,8 @@ Detect the original image format (jpg / png) instead of guessing it from the pag
 
 ### Changed
 Keep the Save button pinned to the bottom of the options page.
+Add the "scripting" permission. It is used only while video download (beta) is on, to run a script in X's page that reads the video data X has loaded.
+Require Firefox 109 or later (the extension uses Manifest V3).
 Rewrite the image resolver to support the new X web client (x-web) as well.
 Remove emoji from the <username> tag. The user id is used when nothing is left.
 Remove support for the classic Twitter UI (before 2019) and the jQuery dependency.

@@ -90,36 +90,92 @@ export class ImageInfoImpl implements ImageInfo {
 	}
 
 	createFileName(format: string): string{
-		let filename = format
-		filename = filename.replace(TagYear, String(this.dateTime.format('YYYY')));
-		filename = filename.replace(TagMonth, String(this.dateTime.format('MM')));
-		filename = filename.replace(TagDay, String(this.dateTime.format('DD')));
-		filename = filename.replace(TagHour, String(this.dateTime.format('HH')));
-		filename = filename.replace(TagMin, String(this.dateTime.format('mm')));
-		filename = filename.replace(TagSec, String(this.dateTime.format('ss')));
-		filename = filename.replace(TagUserId, this.username);
-		filename = filename.replace(TagUserName, this.userDisplay);
-		filename = filename.replace(TagTweetId, this.tweetId);
-		filename = filename.replace(TagImageIndex, this.imageIndex.toString());
-		filename = filename.replace(TagOriginal, this.mediaId)
-		filename = filename.replace(TagExtension, this.extension);
-		if(this.postDate !== undefined){
-			filename = filename.replace(TagPostYear, this.postDate.getFullYear().toString());
-			filename = filename.replace(TagPostMonth, (this.postDate.getMonth() + 1).toString().padStart(2, '0'));
-			filename = filename.replace(TagPostDay, this.postDate.getDate().toString().padStart(2, '0'));
-			filename = filename.replace(TagPostHour, this.postDate.getHours().toString().padStart(2, '0'));
-			filename = filename.replace(TagPostMin, this.postDate.getMinutes().toString().padStart(2, '0'));
-			filename = filename.replace(TagPostSec, this.postDate.getSeconds().toString().padStart(2, '0'));
+		return buildFilename(format, {
+			now: this.dateTime,
+			userId: this.username,
+			userDisplay: this.userDisplay,
+			tweetId: this.tweetId,
+			index: this.imageIndex,
+			original: this.mediaId,
+			extension: this.extension,
+			postDate: this.postDate,
+		});
+	}
+}
+
+export interface FilenameFields {
+	readonly now: Moment;
+	readonly userId: string;
+	/** already sanitized (sanitizeDisplayName) */
+	readonly userDisplay: string;
+	readonly tweetId: string;
+	readonly index: number;
+	readonly original: string;
+	readonly extension: string;
+	readonly postDate: Date | undefined;
+}
+
+/**
+ * Replace the tags of the "download_to" format. Shared by images and videos.
+ */
+export function buildFilename(format: string, f: FilenameFields): string {
+	let filename = format
+	filename = filename.replace(TagYear, String(f.now.format('YYYY')));
+	filename = filename.replace(TagMonth, String(f.now.format('MM')));
+	filename = filename.replace(TagDay, String(f.now.format('DD')));
+	filename = filename.replace(TagHour, String(f.now.format('HH')));
+	filename = filename.replace(TagMin, String(f.now.format('mm')));
+	filename = filename.replace(TagSec, String(f.now.format('ss')));
+	filename = filename.replace(TagUserId, f.userId);
+	filename = filename.replace(TagUserName, f.userDisplay);
+	filename = filename.replace(TagTweetId, f.tweetId);
+	filename = filename.replace(TagImageIndex, f.index.toString());
+	filename = filename.replace(TagOriginal, f.original)
+	filename = filename.replace(TagExtension, f.extension);
+	if(f.postDate !== undefined){
+		filename = filename.replace(TagPostYear, f.postDate.getFullYear().toString());
+		filename = filename.replace(TagPostMonth, (f.postDate.getMonth() + 1).toString().padStart(2, '0'));
+		filename = filename.replace(TagPostDay, f.postDate.getDate().toString().padStart(2, '0'));
+		filename = filename.replace(TagPostHour, f.postDate.getHours().toString().padStart(2, '0'));
+		filename = filename.replace(TagPostMin, f.postDate.getMinutes().toString().padStart(2, '0'));
+		filename = filename.replace(TagPostSec, f.postDate.getSeconds().toString().padStart(2, '0'));
+	}
+	else{
+		filename = filename.replace(TagPostYear, '');
+		filename = filename.replace(TagPostMonth, '');
+		filename = filename.replace(TagPostDay, '');
+		filename = filename.replace(TagPostHour, '');
+		filename = filename.replace(TagPostMin, '');
+		filename = filename.replace(TagPostSec, '');
+	}
+	return filename;
+}
+
+/**
+ * video / GIF (beta): the mp4 url comes from X's data; <original> is the mp4 file name, <ext> is "mp4"
+ */
+export class VideoInfo implements ImageInfo {
+	public readonly downloadUrl: string;
+	public readonly filename: string;
+
+	constructor(url: string, original: string, format: string, place: { userId?: string, tweetId?: string, index?: number, displayName?: string, postTime?: number }) {
+		this.downloadUrl = url;
+		console.log(`downloadUrl : ${this.downloadUrl}`);
+
+		if (place.userId === undefined || place.tweetId === undefined) {
+			this.filename = `TID-unknown-${original}.mp4`;
+			return;
 		}
-		else{
-			filename = filename.replace(TagPostYear, '');
-			filename = filename.replace(TagPostMonth, '');
-			filename = filename.replace(TagPostDay, '');
-			filename = filename.replace(TagPostHour, '');
-			filename = filename.replace(TagPostMin, '');
-			filename = filename.replace(TagPostSec, '');
-		}
-		return filename;
+		this.filename = buildFilename(format, {
+			now: moment(),
+			userId: place.userId,
+			userDisplay: sanitizeDisplayName(place.displayName, place.userId),
+			tweetId: place.tweetId,
+			index: place.index !== undefined ? place.index : 0,
+			original,
+			extension: 'mp4',
+			postDate: place.postTime !== undefined ? new Date(place.postTime) : undefined,
+		});
 	}
 }
 

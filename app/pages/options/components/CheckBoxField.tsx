@@ -27,6 +27,11 @@ const Container = styled.div<{}>`
   &:hover{
     opacity: 0.8;
   }
+
+  &.disabled{
+    opacity: 0.4;
+    cursor: default;
+  }
 `;
 
 const CheckBox = styled.span`
@@ -54,13 +59,17 @@ interface Property{
   label: string;
   isOn: boolean;
   onClick: () => void;
+  /** greyed out and does not respond to clicks */
+  disabled?: boolean;
 }
 
 export class CheckBoxField extends Component<Property>{
 
   public render(): JSX.Element{
     return(
-      <Container onClick={() => this.props.onClick()}>
+      <Container
+        className={this.props.disabled ? "disabled" : ""}
+        onClick={() => { if (!this.props.disabled) this.props.onClick(); }}>
         <CheckBox className={this.props.isOn ? "checked": ""} />
         <Label>{this.props.label}</Label>
       </Container>

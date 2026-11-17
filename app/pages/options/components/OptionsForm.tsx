@@ -6,8 +6,9 @@ import { Spinner } from './Spinner';
 import { DownloadToField } from './DownloadToField';
 import { EnableSaveAsField } from './EnableSaveAsField';
 import { ContextMenuFields } from './ContextMenuFields';
+import { VideoBetaField } from './VideoBetaField';
 import { AppColor } from '../Colors';
-import { ReadContextMenuSetting, DefaultShiftNativeMenu, DefaultOverrideContextMenu } from '../../../scripts/Setting';
+import { ReadContextMenuSetting, DefaultShiftNativeMenu, DefaultOverrideContextMenu, DefaultVideoBeta, VideoBetaUnsupportedKey } from '../../../scripts/Setting';
 import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, TagUserName} from '../../../scripts/Setting';
 import { TagYear, TagMonth, TagDay, TagHour, TagMin, TagSec } from '../../../scripts/Setting';
 import { TagPostYear, TagPostMonth, TagPostDay, TagPostHour, TagPostMin, TagPostSec } from '../../../scripts/Setting';
@@ -44,6 +45,8 @@ interface OptionState{
   enableOpenSaveAs: boolean;
   shiftNativeMenu: boolean;
   overrideContextMenu: boolean;
+  videoBeta: boolean;
+  videoBetaUnsupported: boolean;
   isValidWithEmptyFilename: boolean;
   isValidWithParse: boolean;
 }
@@ -58,6 +61,8 @@ export class OptionsForm extends Component<any, OptionState>{
       dirnameDownloadTo: defaultDirnameDownloadTo,
       enableOpenSaveAs: defaultEnableOpenSaveAs,
       ...ReadContextMenuSetting({}),
+      videoBeta: DefaultVideoBeta,
+      videoBetaUnsupported: false,
       isValidWithEmptyFilename: false,
       isValidWithParse: false,
     }
@@ -71,6 +76,7 @@ export class OptionsForm extends Component<any, OptionState>{
       open_save_as: this.state.enableOpenSaveAs,
       shift_native_menu: this.state.shiftNativeMenu,
       override_context_menu: this.state.overrideContextMenu,
+      video_beta: this.state.videoBeta && !this.state.videoBetaUnsupported,
       data_version: 2,
     }, () =>{
       this.setState({
@@ -87,6 +93,8 @@ export class OptionsForm extends Component<any, OptionState>{
       open_save_as : defaultEnableOpenSaveAs,
       shift_native_menu : DefaultShiftNativeMenu,
       override_context_menu : DefaultOverrideContextMenu,
+      video_beta : DefaultVideoBeta,
+      [VideoBetaUnsupportedKey] : null,
       data_version : 1,
     }, (items: any) => {
       
@@ -104,6 +112,8 @@ export class OptionsForm extends Component<any, OptionState>{
         enableOpenSaveAs: setting.open_save_as!,
         shiftNativeMenu: menuSetting.shiftNativeMenu,
         overrideContextMenu: menuSetting.overrideContextMenu,
+        videoBeta: items.video_beta === true,
+        videoBetaUnsupported: typeof items[VideoBetaUnsupportedKey] === 'string',
         isValidWithEmptyFilename: this.isValidWithEmptyFilename(setting.download_to!),
         isValidWithParse: this.isValidWithParse(setting.download_to!),
       });
@@ -163,6 +173,10 @@ export class OptionsForm extends Component<any, OptionState>{
             overrideContextMenu={this.state.overrideContextMenu}
             onClickShiftNativeMenu={() => this.setState({shiftNativeMenu: !this.state.shiftNativeMenu})}
             onClickOverrideContextMenu={() => this.setState({overrideContextMenu: !this.state.overrideContextMenu})} />
+          <VideoBetaField
+            isOn={this.state.videoBeta}
+            isUnsupported={this.state.videoBetaUnsupported}
+            onClick={() => this.setState({videoBeta: !this.state.videoBeta})} />
           <DownloadToField
             isValidWithEmptyFilename={this.state.isValidWithEmptyFilename}
             isValidWithParse={this.state.isValidWithParse}
@@ -182,4 +196,4 @@ export class OptionsForm extends Component<any, OptionState>{
       );
     }
   }
-}
+}

@@ -33,6 +33,7 @@
   "permissions" : [
     "contextMenus",
     "downloads",
+    "scripting",
     "storage"
   ],
   "host_permissions": [
