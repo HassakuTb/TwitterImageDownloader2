@@ -22,7 +22,46 @@
 
 ### `/photo/N` リンクのない画像（2026-11-17 確認）
 
-`@NASA` のタイムラインで、`[data-testid=previewInterstitial]` の中の `pbs.twimg.com/media` の `img`（`HXRLj6bW0AAxO8n`）は、`<a>` に包まれていませんでした。`article` 内に `/photo/N` リンクもありません。動画などのプレビューと見られます（中身は未確認）。`/media/` の画像がすべて写真とは限りません。
+`@NASA` のタイムラインで、`[data-testid=previewInterstitial]` の中の `pbs.twimg.com/media` の `img`（`HXRLj6bW0AAxO8n`）は、`<a>` に包まれていませんでした。`article` 内に `/photo/N` リンクもありません。`/media/` の画像がすべて写真とは限りません。
+
+2026-11-17 追記: この `img` は、動画（`/NASA/status/2122404409292337592`）の poster でした。下の「動画（再生前）」を参照してください。
+
+## 動画（再生前）（2026-11-17 確認）
+
+`/NASA/status/2122404409292337592` のツイート詳細を開いた直後（再生前）の DOM です。
+
+- `<video>` 要素は 0 件でした。
+- poster の `img` の祖先は `IMG < DIV < DIV < DIV[data-testid=previewInterstitial] < DIV < DIV < DIV < DIV[data-testid=tweetPhoto] < …` でした。画像と同じ `tweetPhoto` の中にあります。
+- `img` の src は `https://pbs.twimg.com/media/HXRLj6bW0AAxO8n?…` で、画像と同じ形です。
+- `article` 内の `data-testid` には `playButton` がありました。
+- `/video/N` のリンクも `/photo/N` のリンクもありません。ツイート ID は、`article` 内の `/status/<id>` のリンクから取れます。
+- mp4 の URL は DOM のどこにもありません。React の props とネットワークの応答にあります（[tweet-data.md](tweet-data.md)）。
+
+## 動画・GIF の再生中と、GIF の再生前（2026-11-17 確認）
+
+ログイン済みの旧クライアントで、`@GIPHY` のプロフィールの GIF と `/NASA/status/2122404409292337592` の動画を、`playButton` を `click()` して再生しました（自動再生はオフの設定でした）。
+
+### GIF（再生前）
+
+- 動画と同じで、`[data-testid=tweetPhoto]` > `[data-testid=previewInterstitial]` の中の `img` と `playButton` だけでした。`<video>` はありません。
+- `img` の src は `pbs.twimg.com/tweet_video_thumb/<キー>?…` です。
+
+### 再生中
+
+- `<video>` は `[data-testid=videoPlayer]` > … > `[data-testid=videoComponent]` > `DIV` > `DIV` > `VIDEO` の位置にできました。`previewInterstitial` は消えます。
+- GIF の `<video>` は `src="https://video.twimg.com/tweet_video/<キー>.mp4"`、`poster="…/tweet_video_thumb/<キー>.jpg"` でした。mp4 の URL が DOM に直接あります。
+- 動画の `<video>` は `src="blob:https://x.com/…"` で、`poster="https://pbs.twimg.com/media/<mediaId>.jpg"`（拡張子つきの古い形）でした。
+- 再生中の画面で右クリックが当たるのは `<video>` ではありませんでした。`elementFromPoint` の結果は、中央が一時停止・再生の `BUTTON`（の `svg`）、それ以外は `opacity: 0` の poster の `img`（`…/media/<mediaId>.jpg`、`[data-testid=videoComponent]` の中）でした。ブラウザのメニューは image コンテキストになる見込みです（未確認）。
+
+2026-11-17 追記（拡張を入れた Chrome で確認）: 再生を始めたあとは、マウスを動画の上に置くと操作用の透明な層（`[data-testid=videoComponent]` の中の `DIV`。`document.elementsFromPoint` で `<video>` より上に 3 つ）が出ます。右クリックはこの `DIV` に当たり、ブラウザのメニューは image / video コンテキストになりません。右ボタンの `mousedown`（`window` の capture フェーズ）で、これらの層に `pointer-events: none` を付けると、続く右クリックは `<video>` に当たり、拡張の video コンテキストの項目が出ました（Shift + 右クリック、ユーザーが手で確認）。
+
+### 写真と動画が混ざったツイート
+
+検索 `filter:images filter:native_video` の結果で確認しました。
+
+- `/photo/N` の N は、動画も数えた位置でした。例: 10 個のメディアのうち 8 番目が動画のツイートで、写真のリンクは photo1〜photo7、photo9、photo10。
+- 動画のセルには `/photo/N` も `/video/N` のリンクもありません。
+- DOM のセルの順と、データ（React の props の `mediaDetails`）の並び順は一致しました。
 
 ### 引用ツイート（2026-11-17 確認）
 

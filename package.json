@@ -5,7 +5,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "{905ac796-d4c9-4f71-a93c-1e5a1ed2050a}",
-      "strict_min_version": "57.0"
+      "strict_min_version": "109.0"
     }
   },
   "firefox_background" : {

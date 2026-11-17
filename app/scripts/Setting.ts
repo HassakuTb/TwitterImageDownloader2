@@ -25,6 +25,14 @@ export const DefaultFilename: string = `${TagYear}-${TagMonth}/${TagUserId}-${Ta
 export const DefaultShiftNativeMenu: boolean = true;
 /** Right click on an image always opens the browser's context menu instead of X's own menu */
 export const DefaultOverrideContextMenu: boolean = false;
+/** Download videos and GIFs (beta). Off by default. */
+export const DefaultVideoBeta: boolean = false;
+
+/**
+ * storage.local key written by the background when the browser cannot run the page-world
+ * (MAIN world) script that video download needs. The value is the reason (for logs / options page).
+ */
+export const VideoBetaUnsupportedKey: string = 'video_beta_unsupported';
 
 export const CreateDefaultSetting: () => Setting = () => {
 	return {
@@ -32,6 +40,7 @@ export const CreateDefaultSetting: () => Setting = () => {
 		open_save_as: false,
 		shift_native_menu: DefaultShiftNativeMenu,
 		override_context_menu: DefaultOverrideContextMenu,
+		video_beta: DefaultVideoBeta,
 		data_version: LatestDataVersion,
 	}
 };
@@ -59,6 +68,8 @@ export interface Setting {
 	shift_native_menu?: boolean;
 	/** added after data_version 2; undefined means the default */
 	override_context_menu?: boolean;
+	/** added after data_version 2; undefined means the default (off) */
+	video_beta?: boolean;
 	data_version?: number;
 }
 
@@ -72,4 +83,8 @@ export const ReadContextMenuSetting: (setting: Setting) => ContextMenuSetting = 
 		shiftNativeMenu: typeof setting.shift_native_menu === 'boolean' ? setting.shift_native_menu : DefaultShiftNativeMenu,
 		overrideContextMenu: typeof setting.override_context_menu === 'boolean' ? setting.override_context_menu : DefaultOverrideContextMenu,
 	}
-}
+}
+
+export const ReadVideoBeta: (setting: Setting) => boolean = (setting: Setting) =>{
+	return typeof setting.video_beta === 'boolean' ? setting.video_beta : DefaultVideoBeta;
+}

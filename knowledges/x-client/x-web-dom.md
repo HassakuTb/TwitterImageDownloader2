@@ -48,6 +48,51 @@
 - ツイート詳細の SSR では、同じツイートの画像が 2 つの `article` に重複して入っていました（画像 4 枚のツイートで `img` が 8 件）。
 - `/<user>/status/<id>/photo/<n>` を取得すると、ツイート詳細と同じ内容の SSR が返りました。モーダル（`[aria-modal]`、`[role=dialog]`）は含まれていません。
 
+## 動画と GIF のマークアップ（2026-11-17 確認）
+
+ログアウト版の SSR の HTML です。JavaScript が動いたあとの DOM（再生中の `src` など）は確認していません。
+
+### 動画
+
+`/NASA` のプロフィールにあった動画（`/NASA/status/2122404409292337592`）です。class などの属性は省いています。
+
+```html
+<div style="aspect-ratio:0.5625" data-press-control="">
+  <div class="relative isolate ... bg-black">
+    <video poster="https://pbs.twimg.com/media/HXRLj6bW0AAxO8n?format=webp&name=medium"
+           playsInline muted disablePictureInPicture></video>
+    <div data-slot="xds-context-menu-trigger">
+      <button type="button" aria-label="Play"></button>
+      <div>
+        <img src="https://pbs.twimg.com/media/HXRLj6bW0AAxO8n?format=webp&name=medium">
+        <button data-slot="xds-button" aria-label="Play">...</button>
+      </div>
+      ...（再生時間の表示 00:00 など）
+    </div>
+  </div>
+</div>
+```
+
+- `<video>` に `src` はありません。mp4 の URL は、ページに埋め込まれたデータにあります（[tweet-data.md](tweet-data.md)）。
+- poster の `img` は、`<video>` の兄弟の `data-slot="xds-context-menu-trigger"` の中にあります（X 独自の右クリックメニューのトリガー。[context-menu.md](context-menu.md)）。
+- `/video/N` のリンクも `/photo/N` のリンクもありません。ツイート ID は、`article` 内の `/status/<id>` のリンク（投稿時刻の「13h」など）から取れます。
+- `aria-label="Play"` は英語の UI での値です。
+- 別の動画の poster は `https://pbs.twimg.com/amplify_video_thumb/<数値ID>/img/<キー>?format=webp&name=medium` の形でした（`@GIPHY` のプロフィール）。
+
+### GIF
+
+`@GIPHY` のプロフィールにあった GIF です。
+
+```html
+<video src="https://video.twimg.com/tweet_video/Gyvn5n8X0AAXK24.mp4"
+       poster="https://pbs.twimg.com/tweet_video_thumb/Gyvn5n8X0AAXK24?format=webp&name=large"
+       aria-label="Lanaughty Lana Del Rey GIF" muted playsInline disablePictureInPicture></video>
+```
+
+- 動画と違い、GIF は `<video>` の `src` に mp4 の URL がそのまま入っています。
+- `src` のファイル名と poster のキーは同じです（[video-twimg.md](../media/video-twimg.md)）。
+- `aria-label` には GIF の説明文が入っていました。
+
 ## 表示名
 
 `article` 内に `a[href="/<user>"]` が 3 つあります。
