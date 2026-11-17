@@ -1,3 +1,14 @@
+## Unreleased
+### Fixed
+Fix download from the media tab (/<user>/media?filter=photo).
+Fix post date and user name of images in a quoted tweet and in the image viewer.
+Detect the original image format (jpg / png) instead of guessing it from the page.
+
+### Changed
+Rewrite the image resolver to support the new X web client (x-web) as well.
+Remove emoji from the <username> tag. The user id is used when nothing is left.
+Remove support for the classic Twitter UI (before 2019) and the jQuery dependency.
+
 ## 2.2.13 - 2024-06-23
 ### Added
 Support time of day in filename format.
