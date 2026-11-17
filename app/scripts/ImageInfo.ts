@@ -1,71 +1,58 @@
 import moment, { Moment } from 'moment'
 import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, TagUserName } from "./Setting";
-import { TagYear, TagMonth, TagDay } from "./Setting";
-import { TagPostYear, TagPostMonth, TagPostDay } from "./Setting";
+import { TagYear, TagMonth, TagDay, TagHour, TagMin, TagSec } from "./Setting";
+import { TagPostYear, TagPostMonth, TagPostDay, TagPostHour, TagPostMin, TagPostSec } from "./Setting";
 
-const twimgBase: string = 'https://pbs.twimg.com/media/';
+import { Extension, originalUrl } from "./Twimg";
+export { Extension, parseTwimgUrl, guessExtension, originalUrl } from "./Twimg";
 
 /**
- * Url resolver
+ * Result of resolving the right-clicked image in the content script.
+ * Sent to the background as plain JSON (no Date / class instances).
  */
-class TwimgUrl {
+export interface ResolvedMedia {
+	/** pbs.twimg.com/media/<mediaId> */
+	readonly mediaId: string;
+	/** "format" shown in the page's src (jpg / png / webp). Used only when probing fails. */
+	readonly srcFormat?: string;
+	readonly userId?: string;
+	readonly tweetId?: string;
+	/** 0-based (photo/N - 1) */
+	readonly imageIndex?: number;
+	readonly displayName?: string;
+	/** epoch milliseconds */
+	readonly postTime?: number;
+}
 
-	baseUrl: string = "";
-	path: string = "";
-	extension: "jpg" | "png" = "png";
-	downloadUrl: string;
+/**
+ * Emoji sequences (ZWJ / skin tone / variation selector / tags), flags and keycaps.
+ * Based on \p{Emoji} (not Extended_Pictographic, which also covers symbols such as ♡ ♪ ★
+ * that are shown as text). ASCII and (c) (r) TM are kept unless they carry an emoji
+ * variation selector / keycap.
+ */
+const emojiPatterns: RegExp[] = [
+	/[0-9#*]️?⃣/gu,
+	/[©®™]️/gu,
+	/(?![\u0000-\u007F©®™])\p{Emoji}(?:️|\p{Emoji_Modifier})?(?:‍(?![\u0000-\u007F])\p{Emoji}(?:️|\p{Emoji_Modifier})?)*[\u{E0020}-\u{E007F}]*/gu,
+	/[️⃣]/gu,
+];
 
-	constructor(srcUrl: string) {
-		if (srcUrl.indexOf("?") > -1) {
-			this.initializeForNewUrl(srcUrl);
-		}
-		else {
-			this.initializeForOldUrl(srcUrl);
-		}
+export function removeEmoji(src: string): string {
+	return emojiPatterns.reduce((s, re) => s.replace(re, ''), src);
+}
 
-		this.downloadUrl = `${this.baseUrl}?format=${this.extension}&name=orig`;
-	}
+function removeUnsupportedChar(src: string): string {
+	return src.trim().replace(/[\\\/#:,*?"|]/g, '');
+}
 
-	private initializeForNewUrl(srcUrl: string): void {
-		this.baseUrl = srcUrl.split("?")[0];
-
-		const queryParams: string = srcUrl.split("?")[1];
-		queryParams.split("&").forEach(x => {
-			if (x.lastIndexOf("format=", 0) === 0) {
-				const ext = x.slice("format=".length)
-				if (ext === "jpg" || ext === "jpeg" || ext === "webp") {
-					this.extension = 'jpg';
-				}
-				else {
-					this.extension = 'png';
-				}
-			}
-		});
-
-		this.path = this.baseUrl.slice(twimgBase.length);
-		if (this.path.indexOf('.') > -1) {
-			this.path = this.path.split('.')[0];
-		}
-	}
-
-	private initializeForOldUrl(srcUrl: string): void {
-		const suffix = srcUrl.slice(twimgBase.length);
-		const split: string[] = suffix.split('.');
-		let extension: string = split[split.length - 1].toLowerCase();
-		const extensionSplit: string[] = extension.split(':');
-		if (extensionSplit.length >= 2) {
-			extension = extensionSplit[0];
-		}
-		this.path = split[0];
-		this.baseUrl = twimgBase + this.path;
-
-		if (extension === "jpg" || extension === "jpeg" || extension === "webp") {
-			this.extension = 'jpg';
-		}
-		else {
-			this.extension = 'png';
-		}
-	}
+/**
+ * <username>: emoji removed (same as the old client, which renders emoji as <img>),
+ * unsupported chars removed, falls back to user id when nothing is left.
+ */
+export function sanitizeDisplayName(displayName: string | undefined, userId: string): string {
+	if (displayName === undefined) return userId;
+	const name = removeUnsupportedChar(removeEmoji(displayName));
+	return name.length > 0 ? name : userId;
 }
 
 export interface ImageInfo {
@@ -77,7 +64,8 @@ export class ImageInfoImpl implements ImageInfo {
 	private username: string;
 	private tweetId: string;
 	private imageIndex: number;
-	private twimgUrl: TwimgUrl;
+	private mediaId: string;
+	private extension: Extension;
 	private dateTime: Moment;
 	private postDate: Date | undefined;
 	private userDisplay: string;
@@ -85,50 +73,109 @@ export class ImageInfoImpl implements ImageInfo {
 	public readonly filename: string;
 	public readonly downloadUrl: string;
 
-	private static removeUnsupportedChar(src: string): string{
-		return src.trim().replace(/[\\\/#:,*?"|]/g, '');
-	}
-
-	constructor(username: string, tweetId: string, imageIndex: number, srcUrl: string, format: string, postDate: Date | undefined, userDisplay: string | undefined) {
-		//  parse query parameter (twimg.com)
-		// console.log(srcUrl);
-
+	constructor(username: string, tweetId: string, imageIndex: number, mediaId: string, extension: Extension, format: string, postDate: Date | undefined, userDisplay: string | undefined) {
 		this.username = username;
 		this.tweetId = tweetId;
 		this.imageIndex = imageIndex;
-		this.twimgUrl = new TwimgUrl(srcUrl);
+		this.mediaId = mediaId;
+		this.extension = extension;
 		this.dateTime = moment();
 		this.postDate = postDate;
-		this.userDisplay = userDisplay === undefined ? username : ImageInfoImpl.removeUnsupportedChar(userDisplay);
+		this.userDisplay = sanitizeDisplayName(userDisplay, username);
 
-		this.downloadUrl = this.twimgUrl.downloadUrl;
+		this.downloadUrl = originalUrl(mediaId, extension);
 		console.log(`downloadUrl : ${this.downloadUrl}`);
 
 		this.filename = this.createFileName(format);
 	}
 
 	createFileName(format: string): string{
-		let filename = format
-		filename = filename.replace(TagYear, String(this.dateTime.format('YYYY')));
-		filename = filename.replace(TagMonth, String(this.dateTime.format('MM')));
-		filename = filename.replace(TagDay, String(this.dateTime.format('DD')));
-		filename = filename.replace(TagUserId, this.username);
-		filename = filename.replace(TagUserName, this.userDisplay);
-		filename = filename.replace(TagTweetId, this.tweetId);
-		filename = filename.replace(TagImageIndex, this.imageIndex.toString());
-		filename = filename.replace(TagOriginal, this.twimgUrl.path)
-		filename = filename.replace(TagExtension, this.twimgUrl.extension);
-		if(this.postDate !== undefined){
-			filename = filename.replace(TagPostYear, this.postDate.getFullYear().toString());
-			filename = filename.replace(TagPostMonth, (this.postDate.getMonth() + 1).toString().padStart(2, '0'));
-			filename = filename.replace(TagPostDay, this.postDate.getDate().toString().padStart(2, '0'));
+		return buildFilename(format, {
+			now: this.dateTime,
+			userId: this.username,
+			userDisplay: this.userDisplay,
+			tweetId: this.tweetId,
+			index: this.imageIndex,
+			original: this.mediaId,
+			extension: this.extension,
+			postDate: this.postDate,
+		});
+	}
+}
+
+export interface FilenameFields {
+	readonly now: Moment;
+	readonly userId: string;
+	/** already sanitized (sanitizeDisplayName) */
+	readonly userDisplay: string;
+	readonly tweetId: string;
+	readonly index: number;
+	readonly original: string;
+	readonly extension: string;
+	readonly postDate: Date | undefined;
+}
+
+/**
+ * Replace the tags of the "download_to" format. Shared by images and videos.
+ */
+export function buildFilename(format: string, f: FilenameFields): string {
+	let filename = format
+	filename = filename.replace(TagYear, String(f.now.format('YYYY')));
+	filename = filename.replace(TagMonth, String(f.now.format('MM')));
+	filename = filename.replace(TagDay, String(f.now.format('DD')));
+	filename = filename.replace(TagHour, String(f.now.format('HH')));
+	filename = filename.replace(TagMin, String(f.now.format('mm')));
+	filename = filename.replace(TagSec, String(f.now.format('ss')));
+	filename = filename.replace(TagUserId, f.userId);
+	filename = filename.replace(TagUserName, f.userDisplay);
+	filename = filename.replace(TagTweetId, f.tweetId);
+	filename = filename.replace(TagImageIndex, f.index.toString());
+	filename = filename.replace(TagOriginal, f.original)
+	filename = filename.replace(TagExtension, f.extension);
+	if(f.postDate !== undefined){
+		filename = filename.replace(TagPostYear, f.postDate.getFullYear().toString());
+		filename = filename.replace(TagPostMonth, (f.postDate.getMonth() + 1).toString().padStart(2, '0'));
+		filename = filename.replace(TagPostDay, f.postDate.getDate().toString().padStart(2, '0'));
+		filename = filename.replace(TagPostHour, f.postDate.getHours().toString().padStart(2, '0'));
+		filename = filename.replace(TagPostMin, f.postDate.getMinutes().toString().padStart(2, '0'));
+		filename = filename.replace(TagPostSec, f.postDate.getSeconds().toString().padStart(2, '0'));
+	}
+	else{
+		filename = filename.replace(TagPostYear, '');
+		filename = filename.replace(TagPostMonth, '');
+		filename = filename.replace(TagPostDay, '');
+		filename = filename.replace(TagPostHour, '');
+		filename = filename.replace(TagPostMin, '');
+		filename = filename.replace(TagPostSec, '');
+	}
+	return filename;
+}
+
+/**
+ * video / GIF (beta): the mp4 url comes from X's data; <original> is the mp4 file name, <ext> is "mp4"
+ */
+export class VideoInfo implements ImageInfo {
+	public readonly downloadUrl: string;
+	public readonly filename: string;
+
+	constructor(url: string, original: string, format: string, place: { userId?: string, tweetId?: string, index?: number, displayName?: string, postTime?: number }) {
+		this.downloadUrl = url;
+		console.log(`downloadUrl : ${this.downloadUrl}`);
+
+		if (place.userId === undefined || place.tweetId === undefined) {
+			this.filename = `TID-unknown-${original}.mp4`;
+			return;
 		}
-		else{
-			filename = filename.replace(TagPostYear, '');
-			filename = filename.replace(TagPostMonth, '');
-			filename = filename.replace(TagPostDay, '');
-		}
-		return filename;
+		this.filename = buildFilename(format, {
+			now: moment(),
+			userId: place.userId,
+			userDisplay: sanitizeDisplayName(place.displayName, place.userId),
+			tweetId: place.tweetId,
+			index: place.index !== undefined ? place.index : 0,
+			original,
+			extension: 'mp4',
+			postDate: place.postTime !== undefined ? new Date(place.postTime) : undefined,
+		});
 	}
 }
 
@@ -138,15 +185,11 @@ export class ImageInfoImpl implements ImageInfo {
 export class ImageInfoUnresolve implements ImageInfo {
 	public readonly downloadUrl: string;
 	public readonly filename: string;
-	private twimgUrl: TwimgUrl;
 
-	constructor(srcUrl: string) {
-		this.twimgUrl = new TwimgUrl(srcUrl);
-
-		this.downloadUrl = this.twimgUrl.downloadUrl;
+	constructor(mediaId: string, extension: Extension) {
+		this.downloadUrl = originalUrl(mediaId, extension);
 		console.log("downloadUrl : " + this.downloadUrl);
 
-		this.filename = `TID-unknown-${this.twimgUrl.path}.${this.twimgUrl.extension}`;
+		this.filename = `TID-unknown-${mediaId}.${extension}`;
 	}
-	
 }

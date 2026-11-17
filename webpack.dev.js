@@ -9,6 +9,8 @@ module.exports = {
     options: "./app/pages/options/options.tsx",
     background: "./app/scripts/Background.ts",
     content: "./app/scripts/ImageInfoResolver.ts",
+    // page-world (MAIN world) script for video download (beta); registered by the background only when enabled
+    page: "./app/scripts/PageWorld.ts",
   },
 
   output: {

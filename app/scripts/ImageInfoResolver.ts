@@ -1,360 +1,179 @@
-import $ from "jquery";
-import { ImageInfo, ImageInfoUnresolve, ImageInfoImpl } from "./ImageInfo";
+import { ResolvedMedia } from "./ImageInfo";
+import { findImageAndLink, resolveMedia } from "./ResolveCore";
+import { ContextMenuSetting, ReadContextMenuSetting, ReadVideoBeta, Setting } from "./Setting";
+import { findVideoKeys, looksLikeVideo, resolvePosterPlace, resolveVideo } from "./VideoResolver";
+import { showToast } from "./Toast";
+import { passThroughPlayer, restorePlayer } from "./PlayerPassThrough";
+import { isInPost, resolvePost } from "./TweetResolver";
 
-interface ImageInfoResolver{
-    resolveImageInfo(srcUrl : string, format: string) : ImageInfo;
+/**
+ * event.target of the last contextmenu event.
+ * Recorded in the capture phase so that page handlers (stopPropagation) cannot hide it.
+ * In x-web the right click hits the overlay <a> (img is under <div inert>), so chrome may not
+ * report srcUrl; the image is found from this element instead.
+ */
+let lastTarget: Element | undefined = undefined;
+
+/**
+ * X shows its own menu on images (and cancels the contextmenu event), which hides the browser's
+ * context menu including "Download Original Image". Depending on the setting, stop the event
+ * before X receives it so that the browser's menu opens.
+ */
+let menuSetting: ContextMenuSetting = ReadContextMenuSetting({});
+/** video download (beta) is on: video / GIF cells also open the browser's menu */
+let videoBeta: boolean = false;
+
+function loadMenuSetting(): void {
+    chrome.storage.local.get((items: Setting) => {
+        menuSetting = ReadContextMenuSetting(items);
+        videoBeta = ReadVideoBeta(items);
+    });
 }
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>{
-    console.log("TIL request: ");
-    console.log(request);
-    if(request.name === 'twitterImageDL'){
-        const resolver : ImageInfoResolver = ResolverSelector.getResolver(request.srcUrl, request.pageUrl);
-        const image : ImageInfo = resolver.resolveImageInfo(request.srcUrl, request.format);
-        sendResponse(image);
+loadMenuSetting();
+chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'local') {
+        loadMenuSetting();
+        lastVideoMenuVisible = undefined;
+        lastBulkMenuVisible = undefined;
     }
-    return true;    //  sync
+});
+// the background rebuilds the menu (visible again) when the setting changes; resend on the next pointerover
+document.addEventListener('visibilitychange', () => {
+    lastVideoMenuVisible = undefined;
+    lastBulkMenuVisible = undefined;
 });
 
-class ResolverSelector{
-    public static getResolver(srcUrl : string, pageUrl : string) : ImageInfoResolver{
-        const targets : JQuery = $(`img[src*="${srcUrl}"]`);
+function useBrowserMenu(event: MouseEvent): boolean {
+    return menuSetting.overrideContextMenu || (menuSetting.shiftNativeMenu && event.shiftKey);
+}
 
-        let host: string | undefined = undefined;
-        ["https://twitter.com", "https://pro.twitter.com", "https://x.com", "https://pro.x.com"]
-        .forEach(target =>{
-            if(pageUrl.lastIndexOf(target, 0) === 0){
-                host = target;
-            }
-        })
-        
-        if(host !== undefined){
-            if(ResolverSelector.isPhotoUrl(pageUrl, host)){
-                console.log("TIL use resolver for new twitter image preview");
-                return new Resolever_TwitterNewPreview(pageUrl, host, targets);
-            }
-            else if(ResolverSelector.isMediaUrl(pageUrl, host)){
-                console.log("TIL use resolver for new twitter media tab");
-                return new Resolver_TwitterMedia(targets);
-            }
-            else if(targets.closest('article').length > 0){
-                console.log("TIL use resolver for new twitter");
-                return new Resolever_TwitterNew(targets);
-            }
-            else{
-                console.log("TIL use resolver for old twitter");
-                return new Resolver_TwitterOld(targets);
-            }
-        }
-        else{
-            console.log("TIL use resolver for unknown");
-            return new Resolver_Unknown();
-        }
-    }
+function isTwitterImage(target: Element): boolean {
+    const { img, link } = findImageAndLink(target, location.href);
+    return img !== undefined || link !== undefined;
+}
 
-    private static isPhotoUrl(url : string, host: string) : boolean{
-        const path : string = url.slice(host.length);
-
-        const linkSplit : string[] = path.split('/');
-        return linkSplit.length === 6 && linkSplit[4] === 'photo';
-    }
-
-    private static isMediaUrl(url: string, host: string): boolean{
-        const path: string = url.slice(host.length);
-
-        const linkSplit: string[] = path.split('/');
-        return linkSplit.length === 3 && linkSplit[2] === 'media';
-    }
+function isTwitterVideo(target: Element): boolean {
+    const { keys, cell } = findVideoKeys(target, undefined);
+    return cell !== undefined && looksLikeVideo(cell, keys);
 }
 
 /**
- * Resolver (unknown)
+ * video download (beta): Chrome folds two items of an extension into a submenu, so
+ * "Download Video (beta)" is hidden while the mouse is on a photo, and shown elsewhere
+ * (on videos, and anywhere else so that a menu opened from the keyboard misses nothing).
+ * The menu is switched when the mouse enters a cell, well before the right click.
  */
-class Resolver_Unknown implements ImageInfoResolver{
-    public resolveImageInfo(srcUrl : string) : ImageInfo{
-        return new ImageInfoUnresolve(srcUrl);
-    }
+const hoverCellSelector: string = '[data-testid=tweetPhoto], [data-testid=videoPlayer], a[href*="/photo/"]';
+/** undefined: send on the next pointerover (the menu is shared by all tabs and windows) */
+let lastVideoMenuVisible: boolean | undefined = undefined;
+
+function videoMenuVisibleFor(target: Element): boolean {
+    const isMediaElement = target.tagName === 'IMG' || target.tagName === 'VIDEO';
+    if (!isMediaElement && target.closest(hoverCellSelector) === null) return true;
+    if (isTwitterVideo(target)) return true;
+    return !isTwitterImage(target);
 }
 
 /**
- * Resolver ( /userid/media )
+ * download all media in a post (beta): the item is in the page / selection context (text or blank area),
+ * where no other item of this extension appears, so "visible: false" can hide it outside posts.
  */
-class Resolver_TwitterMedia implements ImageInfoResolver{
+let lastBulkMenuVisible: boolean | undefined = undefined;
 
-    private targets : JQuery;
-
-    private findUsername(): string | undefined {
-        if(this.targets.closest('main').length === 0) return undefined;
-        const name = this.targets.closest('main').find('[data-testid=UserName]').find('span').first().text();
-        console.log(`found username: ${name}`);
-        return name;
-    }
-
-    constructor(targets : JQuery){
-        this.targets = targets;
-    }
-
-    public resolveImageInfo(srcUrl : string, format: string) : ImageInfo{
-        const targetImage : JQuery = this.targets.first();
-        const link : string | undefined = targetImage.closest('a').attr('href');
-        console.log("TIL target link : " + link);
-
-        if(link === undefined) return new ImageInfoUnresolve(srcUrl);
-
-        const linkSplit : string[] = link.split('/');
-        if(linkSplit.length === 6 && linkSplit[4] === 'photo'){
-            const username : string = linkSplit[1];
-            const tweetId : string = linkSplit[3];
-            const imageIndex : number = parseInt(linkSplit[5], 10) - 1;
-
-            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, undefined, this.findUsername());
-        }
-        else{
-            return new ImageInfoUnresolve(srcUrl);
-        }
-    }
-}
-
-/**
- * Resolver (twitter.com new UI)
- */
-class Resolever_TwitterNew implements ImageInfoResolver{
-
-    private targets : JQuery;
-
-    constructor(targets : JQuery){
-        this.targets = targets;
-    }
-
-    private findPostTime(): Date | undefined {
-        console.log("find post time");
-        if(this.targets.closest('article').length === 0) return undefined;
-        const datetimeStr = this.targets.closest('article').find('time').attr('datetime');
-        if(datetimeStr !== undefined){
-            const date = new Date(datetimeStr);
-            console.log(date.toLocaleString());
-            return date;
-        }
-
-        return undefined;
-    }
-
-    private findUsername(): string | undefined {
-        if(this.targets.closest('article').length === 0) return undefined;
-        const name = this.targets.closest('article').find('[data-testid=User-Name]').find('span').first().text();
-        console.log(`found username: ${name}`);
-        return name;
-    }
-
-    public resolveImageInfo(srcUrl : string, format: string) : ImageInfo{
-        const targetImage : JQuery = this.targets.first();
-        const link : string | undefined = targetImage.closest('a').attr('href');
-        console.log("TIL target link : " + link);
-
-        if(link === undefined) return new ImageInfoUnresolve(srcUrl);
-
-        const linkSplit : string[] = link.split('/');
-        if(linkSplit.length === 6 && linkSplit[4] === 'photo'){
-            const username : string = linkSplit[1];
-            const tweetId : string = linkSplit[3];
-            const imageIndex : number = parseInt(linkSplit[5], 10) - 1;
-
-            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, this.findPostTime(), this.findUsername());
-        }
-        else{
-            return new ImageInfoUnresolve(srcUrl);
-        }
-    }
-}
-
-/**
- * Resolver (twitter.com new UI detail modal)
- */
-class Resolever_TwitterNewPreview implements ImageInfoResolver{
-
-    private linkUrl : string;
-    private host : string;
-    private targets : JQuery;
-
-    constructor(linkUrl : string, host : string, targets : JQuery){
-        this.linkUrl = linkUrl;
-        this.host = host;
-        this.targets = targets;
-    }
-
-    private findUsername(id: string): string | undefined {
-        const contents = this.targets.closest('body').find(`a[href="/${id}"]`);
-        var result: string | undefined = undefined;
-        contents.each((_, element) =>{
-            const content = element.textContent;
-            if(content !== null && content.length > 0 && !content.startsWith(`@${id}`)){
-                result = content;
-            }
+function sendToBackground(message: any): void {
+    try {
+        chrome.runtime.sendMessage(message, () => {
+            if (chrome.runtime.lastError) { /* the background may be restarting; the next change resends */ }
         });
-        console.log(`found username: ${result}`);
-        return result;
     }
-
-    private findPostTime(): Date | undefined {
-        console.log("find post time");
-        if(this.targets.closest('body').length === 0) return undefined;
-        const datetimeStr = this.targets.closest('body').find('article').find('time').attr('datetime');
-        if(datetimeStr !== undefined){
-            const date = new Date(datetimeStr);
-            console.log(date.toLocaleString());
-            return date;
-        }
-
-        return undefined;
-    }
-
-    public resolveImageInfo(srcUrl : string, format: string) : ImageInfo{
-        const path : string = this.linkUrl.slice(this.host.length);
-
-        const linkSplit : string[] = path.split('/');
-        if(linkSplit.length === 6 && linkSplit[4] === 'photo'){
-            const username : string = linkSplit[1];
-            const tweetId : string = linkSplit[3];
-            const imageIndex : number = parseInt(linkSplit[5], 10) - 1;
-
-            return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, this.findPostTime(), this.findUsername(username));
-        }
-        else{
-            return new ImageInfoUnresolve(srcUrl);
-        }
+    catch (e) {
+        // the extension was reloaded; this content script is orphaned
     }
 }
 
-/**
- * Resolver (twitter.com old UI)
- */
-class Resolver_TwitterOld implements ImageInfoResolver{
-
-    private targets : JQuery;
-
-    constructor(targets : JQuery){
-        this.targets = targets;
+window.addEventListener('pointerover', (event: PointerEvent) => {
+    if (!videoBeta || !(event.target instanceof Element)) return;
+    // the pointer came from outside this window (another tab / window may have switched the menu)
+    if (event.relatedTarget === null) {
+        lastVideoMenuVisible = undefined;
+        lastBulkMenuVisible = undefined;
     }
-
-    public resolveImageInfo(srcUrl : string, format: string) : ImageInfo{
-        const images = this.targets;
-
-        let isAdaptiveImage = false;
-        let targetImage = images.first();
-        let i, len;
-        for(i = 0, len = images.length; i < len; ++i){
-            var target = images.eq(i);
-            if(target.closest('.AdaptiveMedia-container').length > 0){
-                isAdaptiveImage = true;
-                targetImage = target;
-                break;
-            }
-        }
-
-        if(isAdaptiveImage){
-            return this.getInfoFromTimeline(targetImage, srcUrl, format);
-        }
-        else if(targetImage.parent('.Gallery-media').length > 0){
-            return this.getInfoFromGallery(targetImage, srcUrl, format);
-        }
-        else if(targetImage.parent('.QuoteMedia-photoContainer').length > 0){
-            return this.getinfoFromNotification(targetImage, srcUrl, format);
-        }
-        else if(targetImage.hasClass('MomentMediaItem-entity')){
-            return this.getInfoFromMoment(targetImage, srcUrl, format);
-        }
-        else{
-            return new ImageInfoUnresolve(srcUrl);
-        }
+    const visible = videoMenuVisibleFor(event.target);
+    if (visible !== lastVideoMenuVisible) {
+        lastVideoMenuVisible = visible;
+        sendToBackground({ name: 'twitterImageDL:videoMenu', visible });
     }
-
-
-    //  download from single gallery
-    //  param image : jquery object <img>
-    //  param srcUrl : twimg url
-    private getInfoFromGallery(image : JQuery, srcUrl : string, format: string) : ImageInfo{
-        console.log("download from gallery")
-    
-        const imageIndex = 0; //  in gallery, always single image
-        const username = image.parent().siblings().find('[data-screen-name]').attr('data-screen-name');
-        const tweetId = image.parent().siblings().find('[data-item-id]').attr('data-item-id');
-
-        if(username === undefined || username === null){
-            return new ImageInfoUnresolve(srcUrl);
-        }
-        if(tweetId === undefined || username === null){
-            return new ImageInfoUnresolve(srcUrl);
-        }
-    
-        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, undefined, undefined);
+    const bulkVisible = isInPost(event.target, location.href);
+    if (bulkVisible !== lastBulkMenuVisible) {
+        lastBulkMenuVisible = bulkVisible;
+        sendToBackground({ name: 'twitterImageDL:bulkMenu', visible: bulkVisible });
     }
-    
-    //  download from timeline of tweet detail
-    //  param image : jquery object <img>
-    //  param srcUrl : twimg url
-    private getInfoFromTimeline(image : JQuery, srcUrl : string, format: string) : ImageInfo{
-        console.log("download from timeline")
-    
-        const mediaContainer = image.closest('.AdaptiveMedia-container');
-        //  in notification, there is only single image
-        let imageIndex = 0;
-        mediaContainer.find('[data-image-url]').each(function(index, element){
-            if($(element).attr('data-image-url') === srcUrl){
-                imageIndex = index;
-            }
+}, true);
+
+// video download (beta): on X's video player, let the right click reach the video under the controls
+window.addEventListener('mousedown', (event: MouseEvent) => {
+    if (event.button === 2 && videoBeta && useBrowserMenu(event)) passThroughPlayer(event);
+}, true);
+
+// registered at document_start, so this runs before any listener of the page
+window.addEventListener('contextmenu', (event: MouseEvent) => {
+    // the menu is decided by now; put the player's layers back
+    window.setTimeout(restorePlayer, 0);
+
+    const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+    const first = path.length > 0 ? path[0] : event.target;
+    lastTarget = first instanceof Element ? first : undefined;
+
+    if (lastTarget !== undefined && useBrowserMenu(event) &&
+        (isTwitterImage(lastTarget) || (videoBeta && isTwitterVideo(lastTarget)))) {
+        event.stopImmediatePropagation();
+    }
+}, true);
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    console.log("TIL request: ");
+    console.log(request);
+    if (request.name === 'twitterImageDL') {
+        let media: ResolvedMedia | undefined = resolveMedia(lastTarget, document, location.href, {
+            srcUrl: request.srcUrl,
+            linkUrl: request.linkUrl,
         });
-    
-        const username = image.closest(`[data-screen-name]`).attr('data-screen-name');
-        const tweetId = image.closest(`[data-item-id]`).attr('data-item-id');
-
-        if(username === undefined || username === null){
-            return new ImageInfoUnresolve(srcUrl);
+        if (videoBeta && media !== undefined && media.tweetId === undefined) {
+            // a video poster has no "/photo/n" link; name it like the video (beta only)
+            const place = resolvePosterPlace(lastTarget, document, location.href, request.srcUrl);
+            if (place !== undefined) {
+                media = {
+                    ...media,
+                    userId: place.userId,
+                    tweetId: place.tweetId,
+                    imageIndex: place.index,
+                    displayName: place.displayName,
+                    postTime: place.postTime,
+                };
+            }
         }
-        if(tweetId === undefined || username === null){
-            return new ImageInfoUnresolve(srcUrl);
-        }
-    
-        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, undefined, undefined);
+        console.log("TIL resolved: ");
+        console.log(media);
+        sendResponse(media === undefined ? null : media);
     }
-    
-    //  download from notification and quote
-    //  param image : jquery object <img>
-    //  param srcUrl : twimg url
-    private getinfoFromNotification(image : JQuery, srcUrl : string, format: string) : ImageInfo{
-        console.log("download from quote")
-    
-        const imageIndex = 0; //  in notification, always single image
-        let username = image.closest(`[data-screen-name]`).attr('data-screen-name');
-        let tweetId = image.closest(`[data-item-id]`).attr('data-item-id');
-
-        if(username === undefined || username === null){
-            return new ImageInfoUnresolve(srcUrl);
-        }
-        if(tweetId === undefined || username === null){
-            return new ImageInfoUnresolve(srcUrl);
-        }
-    
-        return new ImageInfoImpl(username, tweetId, imageIndex, srcUrl, format, undefined, undefined);
+    else if (request.name === 'twitterVideoDL') {
+        // video download (beta): ResolvedVideo or VideoResolveFailure
+        const video = resolveVideo(lastTarget, document, location.href, request.srcUrl);
+        console.log("TIL resolved video: ");
+        console.log(video);
+        sendResponse(video);
     }
-    
-    //  download from moment cover
-    //  moment contents is not image
-    //  param image : jquery object <img>
-    //  param srcUrl : twimg url
-    private getInfoFromMoment(image : JQuery, srcUrl : string, format: string) : ImageInfo{
-        console.log("download from moment cover")
-    
-        const coverContainer = image.closest('.MomentCapsuleCover-media');
-        const username = coverContainer.find('[data-screen-name]').attr('data-screen-name');
-        const tweetId = coverContainer.find('[data-tweet-id]').attr('data-tweet-id');
-
-        if(username === undefined || username === null){
-            return new ImageInfoUnresolve(srcUrl);
-        }
-        if(tweetId === undefined || username === null){
-            return new ImageInfoUnresolve(srcUrl);
-        }
-    
-        return new ImageInfoImpl(username, tweetId, 1, srcUrl, format, undefined, undefined);
+    else if (request.name === 'twitterBulkDL') {
+        // download all media in a post (beta): ResolvedPost or PostResolveFailure
+        const post = resolvePost(lastTarget, document, location.href, request.includeVideo !== false);
+        console.log("TIL resolved post: ");
+        console.log(post);
+        sendResponse(post);
     }
-}
+    else if (request.name === 'twitterImageDL:toast' && typeof request.message === 'string') {
+        // a failure of video download (beta), sent by the background
+        showToast(request.message);
+        sendResponse(true);
+    }
+    return false;   //  responded synchronously
+});

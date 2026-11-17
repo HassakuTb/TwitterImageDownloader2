@@ -5,9 +5,13 @@ import { SaveButton } from './SaveButton';
 import { Spinner } from './Spinner';
 import { DownloadToField } from './DownloadToField';
 import { EnableSaveAsField } from './EnableSaveAsField';
+import { ContextMenuFields } from './ContextMenuFields';
+import { VideoBetaField } from './VideoBetaField';
+import { AppColor } from '../Colors';
+import { ReadContextMenuSetting, DefaultShiftNativeMenu, DefaultOverrideContextMenu, DefaultVideoBeta, VideoBetaUnsupportedKey, DefaultBulkIncludeVideo, ReadBulkIncludeVideo } from '../../../scripts/Setting';
 import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, TagUserName} from '../../../scripts/Setting';
-import { TagYear, TagMonth, TagDay } from '../../../scripts/Setting';
-import { TagPostYear, TagPostMonth, TagPostDay } from '../../../scripts/Setting';
+import { TagYear, TagMonth, TagDay, TagHour, TagMin, TagSec } from '../../../scripts/Setting';
+import { TagPostYear, TagPostMonth, TagPostDay, TagPostHour, TagPostMin, TagPostSec } from '../../../scripts/Setting';
 
 const Layout = styled.div`
   display: flex;
@@ -18,6 +22,20 @@ const Layout = styled.div`
   width: 800px;
 `;
 
+// Pinned to the bottom of the options view so Save is visible without scrolling.
+// The negative side margins cancel the page padding so scrolled content does not show beside it.
+const Footer = styled.div`
+  position: sticky;
+  bottom: 0;
+  align-self: stretch;
+
+  margin: 0 -40px;
+  padding: 12px 40px 20px;
+
+  background: white;
+  border-top: 1px solid ${AppColor.placeholder};
+`;
+
 const defaultDirnameDownloadTo: string = 'Twitter';
 const defaultEnableOpenSaveAs: boolean = false;
 
@@ -25,6 +43,11 @@ interface OptionState{
   isLoaded: boolean;
   dirnameDownloadTo: string;
   enableOpenSaveAs: boolean;
+  shiftNativeMenu: boolean;
+  overrideContextMenu: boolean;
+  videoBeta: boolean;
+  videoBetaUnsupported: boolean;
+  bulkIncludeVideo: boolean;
   isValidWithEmptyFilename: boolean;
   isValidWithParse: boolean;
 }
@@ -38,6 +61,10 @@ export class OptionsForm extends Component<any, OptionState>{
       isLoaded : false,
       dirnameDownloadTo: defaultDirnameDownloadTo,
       enableOpenSaveAs: defaultEnableOpenSaveAs,
+      ...ReadContextMenuSetting({}),
+      videoBeta: DefaultVideoBeta,
+      videoBetaUnsupported: false,
+      bulkIncludeVideo: DefaultBulkIncludeVideo,
       isValidWithEmptyFilename: false,
       isValidWithParse: false,
     }
@@ -49,6 +76,10 @@ export class OptionsForm extends Component<any, OptionState>{
     chrome.storage.local.set({
       download_to: this.state.dirnameDownloadTo,
       open_save_as: this.state.enableOpenSaveAs,
+      shift_native_menu: this.state.shiftNativeMenu,
+      override_context_menu: this.state.overrideContextMenu,
+      video_beta: this.state.videoBeta && !this.state.videoBetaUnsupported,
+      bulk_include_video: this.state.bulkIncludeVideo,
       data_version: 2,
     }, () =>{
       this.setState({
@@ -63,6 +94,11 @@ export class OptionsForm extends Component<any, OptionState>{
     chrome.storage.local.get({
       download_to : defaultDirnameDownloadTo,
       open_save_as : defaultEnableOpenSaveAs,
+      shift_native_menu : DefaultShiftNativeMenu,
+      override_context_menu : DefaultOverrideContextMenu,
+      video_beta : DefaultVideoBeta,
+      bulk_include_video : DefaultBulkIncludeVideo,
+      [VideoBetaUnsupportedKey] : null,
       data_version : 1,
     }, (items: any) => {
       
@@ -72,11 +108,17 @@ export class OptionsForm extends Component<any, OptionState>{
       if(!IsLatestDataVersion(setting)){
         setting = MigrateSetting1to2(setting);
       }
+      const menuSetting = ReadContextMenuSetting(items as Setting);
 
       this.setState({
         isLoaded: true,
         dirnameDownloadTo: setting.download_to!,
         enableOpenSaveAs: setting.open_save_as!,
+        shiftNativeMenu: menuSetting.shiftNativeMenu,
+        overrideContextMenu: menuSetting.overrideContextMenu,
+        videoBeta: items.video_beta === true,
+        videoBetaUnsupported: typeof items[VideoBetaUnsupportedKey] === 'string',
+        bulkIncludeVideo: ReadBulkIncludeVideo(items as Setting),
         isValidWithEmptyFilename: this.isValidWithEmptyFilename(setting.download_to!),
         isValidWithParse: this.isValidWithParse(setting.download_to!),
       });
@@ -98,9 +140,15 @@ export class OptionsForm extends Component<any, OptionState>{
     s = s.replace(TagYear, "");
     s = s.replace(TagMonth, "");
     s = s.replace(TagDay, "");
+    s = s.replace(TagHour, "");
+    s = s.replace(TagMin, "");
+    s = s.replace(TagSec, "");
     s = s.replace(TagPostYear, "");
     s = s.replace(TagPostMonth, "");
     s = s.replace(TagPostDay, "");
+    s = s.replace(TagPostHour, "");
+    s = s.replace(TagPostMin, "");
+    s = s.replace(TagPostSec, "");
     return !(s.includes("<") || s.includes(">"));
   }
 
@@ -125,12 +173,25 @@ export class OptionsForm extends Component<any, OptionState>{
       return(
         <Layout>
           <EnableSaveAsField isOn={this.state.enableOpenSaveAs} onClick={() => this.setState({enableOpenSaveAs: !this.state.enableOpenSaveAs})}/>
+          <ContextMenuFields
+            shiftNativeMenu={this.state.shiftNativeMenu}
+            overrideContextMenu={this.state.overrideContextMenu}
+            onClickShiftNativeMenu={() => this.setState({shiftNativeMenu: !this.state.shiftNativeMenu})}
+            onClickOverrideContextMenu={() => this.setState({overrideContextMenu: !this.state.overrideContextMenu})} />
+          <VideoBetaField
+            isOn={this.state.videoBeta}
+            isUnsupported={this.state.videoBetaUnsupported}
+            onClick={() => this.setState({videoBeta: !this.state.videoBeta})}
+            bulkIncludeVideo={this.state.bulkIncludeVideo}
+            onClickBulkIncludeVideo={() => this.setState({bulkIncludeVideo: !this.state.bulkIncludeVideo})} />
           <DownloadToField
             isValidWithEmptyFilename={this.state.isValidWithEmptyFilename}
             isValidWithParse={this.state.isValidWithParse}
             value={this.state.dirnameDownloadTo}
             onChange={v => this.onChangeFilename(v)} />
-          <SaveButton disabled={!this.canSave} onClick={()=>this.saveOptions()} />
+          <Footer>
+            <SaveButton disabled={!this.canSave} onClick={()=>this.saveOptions()} />
+          </Footer>
         </Layout>
       );
     }

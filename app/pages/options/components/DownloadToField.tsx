@@ -4,8 +4,8 @@ import styled from 'styled-components';
 import { AppColor } from '../Colors';
 import { TextField } from './TextField';
 import { TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, DefaultFilename, TagUserName } from '../../../scripts/Setting';
-import { TagYear, TagMonth, TagDay } from '../../../scripts/Setting';
-import { TagPostYear, TagPostMonth, TagPostDay } from '../../../scripts/Setting';
+import { TagYear, TagMonth, TagDay, TagHour, TagMin, TagSec } from '../../../scripts/Setting';
+import { TagPostYear, TagPostMonth, TagPostDay, TagPostHour, TagPostMin, TagPostSec } from '../../../scripts/Setting';
 import { SetToDefaultButton } from './SetToDefaultButton';
 
 const InvalidWithEmptyFilename = "The directory or file name cannot be blank.";
@@ -121,9 +121,15 @@ export class DownloadToField extends Component<Property>{
             <InformationText>{`${TagYear} : Current year (${now.getFullYear()})`}</InformationText>
             <InformationText>{`${TagMonth} : Current month (${now.getMonth()+1})`}</InformationText>
             <InformationText>{`${TagDay} : Current day (${now.getDate()})`}</InformationText>
+            <InformationText>{`${TagHour} : Current hour (${now.getHours().toString().padStart(2, '0')})`}</InformationText>
+            <InformationText>{`${TagMin} : Current minute (${now.getMinutes().toString().padStart(2, '0')})`}</InformationText>
+            <InformationText>{`${TagSec} : Current second (${now.getSeconds().toString().padStart(2, '0')})`}</InformationText>
             <InformationText>{`${TagPostYear} : Posted year (yyyy)`}</InformationText>
             <InformationText>{`${TagPostMonth} : Posted month (MM)`}</InformationText>
             <InformationText>{`${TagPostDay} : Posted day (dd)`}</InformationText>
+            <InformationText>{`${TagPostHour} : Posted hour (HH)`}</InformationText>
+            <InformationText>{`${TagPostMin} : Posted minute (mm)`}</InformationText>
+            <InformationText>{`${TagPostSec} : Posted second (ss)`}</InformationText>
           </Paragraph>
           <Paragraph>
             <InformationText>{`The default value is "Twitter/${DefaultFilename}".`}</InformationText>

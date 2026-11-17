@@ -1,3 +1,26 @@
+## 2.3.0 - 2026-11-18
+### Added
+Settings to open the browser's context menu on images, since X now shows its own menu there: Shift + right-click (default on), always (default off).
+Download videos and GIFs (beta, off by default). "Download Video (beta)" saves the highest quality mp4 (GIFs are saved as mp4) with the same filename format as images. While it is on, a video's poster saved by "Download Original Image" is also named like the video. Needs Chrome 102+ or Firefox 128+.
+Download all media in a post (beta, with the same setting as video download). Right-click the text or a blank area of a post and choose "Download All Media in Post (beta)" to save all its photos, videos and GIFs at once (videos and GIFs can be excluded in the options). "Save As" is not used for it, and "-<imageindex>" is added to the filename when the format has neither <imageindex> nor <original>. A toast tells when some of them could not be saved.
+
+### Fixed
+Fix download from the media tab (/<user>/media?filter=photo).
+Fix post date and user name of images in a quoted tweet and in the image viewer.
+Detect the original image format (jpg / png) instead of guessing it from the page.
+
+### Changed
+Keep the Save button pinned to the bottom of the options page.
+Add the "scripting" permission. It is used only while video download (beta) is on, to run a script in X's page that reads the video data X has loaded.
+Require Firefox 109 or later (the extension uses Manifest V3).
+Rewrite the image resolver to support the new X web client (x-web) as well.
+Remove emoji from the <username> tag. The user id is used when nothing is left.
+Remove support for the classic Twitter UI (before 2019) and the jQuery dependency.
+
+## 2.2.13 - 2024-06-23
+### Added
+Support time of day in filename format.
+
 ## 2.2.12 - 2024-05-18
 ### Fixed
 Remove "/" in user name.
