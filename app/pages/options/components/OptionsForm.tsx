@@ -6,6 +6,7 @@ import { Spinner } from './Spinner';
 import { DownloadToField } from './DownloadToField';
 import { EnableSaveAsField } from './EnableSaveAsField';
 import { ContextMenuFields } from './ContextMenuFields';
+import { AppColor } from '../Colors';
 import { ReadContextMenuSetting, DefaultShiftNativeMenu, DefaultOverrideContextMenu } from '../../../scripts/Setting';
 import { CreateDefaultSetting, Setting, IsLatestDataVersion, MigrateSetting1to2, TagUserId, TagTweetId, TagImageIndex, TagOriginal, TagExtension, TagUserName} from '../../../scripts/Setting';
 import { TagYear, TagMonth, TagDay, TagHour, TagMin, TagSec } from '../../../scripts/Setting';
@@ -18,6 +19,20 @@ const Layout = styled.div`
   align-items: flex-start;
 
   width: 800px;
+`;
+
+// Pinned to the bottom of the options view so Save is visible without scrolling.
+// The negative side margins cancel the page padding so scrolled content does not show beside it.
+const Footer = styled.div`
+  position: sticky;
+  bottom: 0;
+  align-self: stretch;
+
+  margin: 0 -40px;
+  padding: 12px 40px 20px;
+
+  background: white;
+  border-top: 1px solid ${AppColor.placeholder};
 `;
 
 const defaultDirnameDownloadTo: string = 'Twitter';
@@ -153,7 +168,9 @@ export class OptionsForm extends Component<any, OptionState>{
             isValidWithParse={this.state.isValidWithParse}
             value={this.state.dirnameDownloadTo}
             onChange={v => this.onChangeFilename(v)} />
-          <SaveButton disabled={!this.canSave} onClick={()=>this.saveOptions()} />
+          <Footer>
+            <SaveButton disabled={!this.canSave} onClick={()=>this.saveOptions()} />
+          </Footer>
         </Layout>
       );
     }
